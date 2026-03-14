@@ -1,10 +1,22 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import SplashScreen from "./features/splashscreen/SplashScreen"
+import LoginPage from "./features/auth/pages/LoginPage"
+import RegisPage from "./features/auth/pages/RegisPage"
+import ResetPassPage from "./features/auth/pages/ResetPassPage"
+
 function App() {
   return (
-    <div className="h-screen flex items-center justify-center bg-[#4C3BCF]">
-      <h1 className="text-white text-5xl font-bold">
-        POS System
-      </h1>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<SplashScreen />} />
+
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisPage />} />
+        <Route path="/reset-password" element={<ResetPassPage />} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
