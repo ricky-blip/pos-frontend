@@ -21,13 +21,11 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center">
-      {/* Background Image */}
       <img
         src={authBackground}
         alt="background"
         className="absolute inset-0 w-full h-full object-cover"
       />
-      {/* Subtle dark overlay so card pops */}
       <div className="absolute inset-0 bg-black/20" />
 
       {/* Login Card */}
@@ -38,12 +36,6 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-6">
           <img src={mainCircleLogo} alt="PadiPos logo" className="w-9 h-9" />
-          {/* <span
-            className="text-xl font-semibold"
-            style={{ color: "#3B5BDB", fontFamily: "'Roboto', sans-serif" }}
-          >
-            PadiPos
-          </span> */}
         </div>
 
         {/* Heading */}
