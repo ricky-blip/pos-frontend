@@ -35,7 +35,11 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-6">
-          <img src={mainCircleLogo} alt="PadiPos logo" className="w-9 h-9" />
+          <img
+            src={mainCircleLogo}
+            alt="PadiPos logo"
+            className="w-22 object-contain"
+          />
         </div>
 
         {/* Heading */}
