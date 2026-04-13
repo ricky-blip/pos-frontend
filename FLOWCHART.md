@@ -11,6 +11,13 @@
 - [5. Flow ProtectedRoute](#5-flow-protectedroute)
 - [6. Flow AuthContext](#6-flow-authcontext)
 - [7. Flow Lengkap dari Awal sampai Akhir](#7-flow-lengkap-dari-awal-sampai-akhir)
+- [8. Flow Sales Report](#8-flow-sales-report-cashier--admin)
+- [9. Flow Settings](#9-flow-settings-cashier--admin)
+- [10. Flow Logout](#10-flow-logout)
+- [11. Flow Error Handling Global](#11-flow-error-handling-global)
+- [12. Peta Interaksi User per Halaman](#12-️-peta-interaksi-user-per-halaman)
+- [13. State Management Flow](#13--state-management-flow)
+- [14. Komponen Hierarki Lengkap](#14--komponen-hierarki-lengkap)
 
 ---
 
@@ -63,23 +70,27 @@ flowchart TD
     D --> E[Klik Tombol Login]
     E --> F[handleLogin Dijalankan]
     F --> G[Set isLoading = true]
-    G --> H[Simulasi API Call - 1 Detik]
-    H --> I{Validasi Credentials}
+    G --> H{Try-Catch Block}
 
-    I -->|Valid| J[Panggil login dari AuthContext]
-    J --> K[Set User State]
-    K --> L[Simpan ke localStorage]
-    L --> M{Role User?}
+    H -->|Try| I[Simulasi API Call - 1 Detik]
+    I --> J{Validasi Credentials}
 
-    M -->|cashier| N[Navigate ke /dashboard]
-    M -->|admin| O[Navigate ke /admin/dashboard]
+    J -->|Valid| K[Panggil login dari AuthContext]
+    K --> L[Set User State]
+    L --> M[Simpan ke localStorage]
+    M --> N{Role User?}
 
-    I -->|Invalid| P[Set Error Message]
-    P --> Q[Tampilkan Error di UI]
-    Q --> D
+    N -->|cashier| O[Navigate ke /dashboard]
+    N -->|admin| P[Navigate ke /admin/dashboard]
 
-    I -->|Valid| R[Set isLoading = false]
-    R --> M
+    J -->|Invalid| Q[Set Error Message]
+    Q --> R[Tampilkan Error di UI]
+    R --> D
+
+    H -->|Finally| S[Set isLoading = false]
+
+    K -.-> S
+    Q -.-> S
 ```
 
 ### 2.2 Flow Register
@@ -88,28 +99,61 @@ flowchart TD
 flowchart TD
     A[User Buka /register] --> B[AuthLayout Render]
     B --> C[Tampil: Form Register]
-    C --> D[User Isi Data]
+    C --> D[User Isi Data: username, email, password, confirm password]
     D --> E[Klik Tombol Register]
     E --> F[handleRegister Dijalankan]
-    F --> G[Simulasi API Call]
-    G --> H{Berhasil?}
+    F --> G{Password Match?}
 
-    H -->|Ya| I[Redirect ke /login]
-    H -->|Tidak| J[Tampilkan Error]
-    J --> D
+    G -->|Tidak| H[Set Error: Password tidak cocok]
+    H --> D
+
+    G -->|Ya| I[Simulasi API Call - POST /register]
+    I --> J{Berhasil?}
+
+    J -->|Ya| K[Toast: Registrasi Berhasil]
+    K --> L[Redirect ke /login]
+
+    J -->|Tidak| M{Error Type?}
+    M -->|Username/Email sudah ada| N[Set Error: Sudah Terpakai]
+    M -->|Server Error| O[Set Error: Server Problem]
+    N --> D
+    O --> D
 ```
 
-### 2.3 Flow Reset Password
+### 2.3 Flow Reset Password (2 Step)
 
 ```mermaid
 flowchart TD
     A[User Buka /reset-password] --> B[AuthLayout Render]
-    B --> C[Tampil: Form Reset Password]
-    C --> D[User Isi Email/Username]
-    D --> E[Klik Tombol Reset]
-    E --> F[Simulasi Kirim Email Reset]
-    F --> G[Tampilkan Pesan Sukses]
-    G --> H[Redirect ke /login]
+    B --> C[STEP 1: Form Input Email]
+    C --> D[User Isi Email Address]
+    D --> E[Klik Tombol 'Kirim Link Reset']
+    E --> F[Simulasi API - POST /forgot-password]
+    F --> G{Email Terdaftar?}
+
+    G -->|Tidak| H[Set Error: Email tidak ditemukan]
+    H --> D
+
+    G -->|Ya| I[Toast: Link reset dikirim ke email]
+    I --> J[STEP 2: Form Reset Password]
+
+    J --> K[User Input: Token dari email]
+    K --> L[User Input: New Password]
+    L --> M[User Input: Confirm New Password]
+    M --> N[Klik Tombol 'Reset Password']
+    N --> O{Password Match?}
+
+    O -->|Tidak| P[Set Error: Password tidak cocok]
+    P --> L
+
+    O -->|Ya| Q[Simulasi API - POST /reset-password]
+    Q --> R{Token Valid?}
+
+    R -->|Tidak| S[Set Error: Token expired / invalid]
+    S --> K
+
+    R -->|Ya| T[Toast: Password berhasil diubah]
+    T --> U[Redirect ke /login]
 ```
 
 ---
@@ -147,8 +191,18 @@ flowchart TD
     V --> W[Reset Cart]
     W --> J
 
-    H --> X[Tampil Laporan Penjualan]
-    I --> Y[Tampil Pengaturan]
+    J --> X{User Buka Order Archive?}
+    X -->|Ya| Y[OrderArchiveModal Open]
+    Y --> Z[Tampil Daftar Transaksi Sebelumnya]
+    Z --> AA{Klik Transaksi?}
+    AA -->|Ya| AB[Tampil Detail Transaksi]
+    AB --> AC[User Klik Tutup Modal]
+    AC --> J
+    AA -->|Tidak| J
+    X -->|Tidak| J
+
+    H --> AD[Tampil Laporan Penjualan]
+    I --> AE[Tampil Pengaturan]
 ```
 
 ### 3.1 Komponen Dashboard Kasir
@@ -206,38 +260,46 @@ flowchart TD
     L --> O[User Tambah Menu Baru]
     O --> P[AddMenuForm Render]
     P --> Q[Simpan Menu]
-    Q --> R[Update UI]
+    Q --> R[Toast: Berhasil]
+    R --> H
 
     L --> S[User Edit Menu]
     S --> T[DetailMenuPanel Render]
     T --> U[Update Data]
-    U --> R
+    U --> V[Toast: Berhasil]
+    V --> H
 
-    L --> V[User Hapus Menu]
-    V --> W[DeleteConfirmModal Render]
-    W -->|Konfirmasi| X[Hapus dari Database]
-    W -->|Batal| R
-    X --> R
+    L --> W[User Hapus Menu]
+    W --> X[DeleteConfirmModal Render]
+    X -->|Konfirmasi| Y[Hapus dari Database]
+    X -->|Batal| H
+    Y --> Z[Toast: Berhasil Dihapus]
+    Z --> H
+
+    G --> AA{Klik Bar Chart?}
+    AA -->|Ya| AB[Top Menu Popup - Foods/Beverages/Desserts]
+    AA -->|Tidak| H
+    AB --> G
 ```
 
 ### 4.1 Komponen Dashboard Admin
 
 ```mermaid
 flowchart LR
-    A[AdminDashboardPage] --> B[StatCard]
-    A --> C[TransactionDetailModal]
+    A1[AdminDashboardPage] --> B1[StatCard]
+    A1 --> C1[TransactionDetailModal]
 
-    H[CatalogPage] --> D[AddMenuForm]
-    H --> E[CategoryFilter]
-    H --> F[CategoryPopup]
-    H --> G[MenuCard]
-    H --> I[DetailMenuPanel]
-    H --> J[DeleteConfirmModal]
+    D1[CatalogPage] --> E1[AddMenuForm]
+    D1 --> F1[CategoryFilter]
+    D1 --> G1[CategoryPopup]
+    D1 --> H1[MenuCard]
+    D1 --> I1[DetailMenuPanel]
+    D1 --> J1[DeleteConfirmModal]
 
-    I[SalesReportPage] --> K[Toast]
+    K1[SalesReportPage] --> L1[Toast]
 
-    J[SettingsPage] --> L[AdminSidebar]
-    J --> M[AdminHeader]
+    M1[SettingsPage] --> N1[AdminSidebar]
+    M1 --> O1[AdminHeader]
 ```
 
 ---
@@ -274,23 +336,28 @@ flowchart TD
     B --> C[Cek localStorage untuk pos-user]
     C --> D{Ada Data di localStorage?}
 
-    D -->|Ya| E[Parse JSON dan Set User State]
+    D -->|Ya| E[Parse JSON: user, role, token, expiry]
     D -->|Tidak| F[Set User = null]
 
-    E --> G[State: user, isAuthenticated, isAdmin, isCashier]
-    F --> G
+    E --> G{Token Expired?}
+    G -->|Ya| H[Clear localStorage]
+    H --> F
+    G -->|Tidak| I[Set User State]
+    I --> J[State: user, isAuthenticated, isAdmin, isCashier]
 
-    G --> H[Provide Context Value]
-    H --> I[Children Components Bisa Akses via useAuth]
+    F --> J
 
-    I --> J{User Panggil Method?}
+    J --> K[Provide Context Value]
+    K --> L[Children Components Bisa Akses via useAuth]
 
-    J -->|login| K[Set User State + Simpan ke localStorage]
-    J -->|logout| L[Set User = null + Hapus dari localStorage]
+    L --> M{User Panggil Method?}
 
-    K --> M[State Update Trigger Re-render]
-    L --> M
-    M --> N[UI Update Otomatis]
+    M -->|login| N[Set User State + Simpan ke localStorage]
+    M -->|logout| O[Set User = null + Hapus dari localStorage]
+
+    N --> P[State Update Trigger Re-render]
+    O --> P
+    P --> Q[UI Update Otomatis]
 ```
 
 ---
@@ -301,103 +368,395 @@ flowchart TD
 flowchart TD
     A[🚀 Aplikasi Dibuka] --> B[main.jsx Running]
     B --> C[AuthProvider Inisialisasi - Cek localStorage]
-    C --> D[BrowserRouter Setup]
-    D --> E[Routes di App.jsx Dijalankan]
+    C --> D{Ada User di localStorage?}
+    D -->|Ya| E{Token Expired?}
+    E -->|Ya| F[Clear localStorage]
+    F --> G[Redirect ke /login]
+    E -->|Tidak| H[Set User State]
+    D -->|Tidak| G
+    H --> I{Auto-redirect sesuai Role}
+    I -->|cashier| J[👉 Redirect ke /dashboard]
+    I -->|admin| K[👉 Redirect ke /admin/dashboard]
 
-    E --> F{Cek Path Saat Ini}
+    I -->|Belum Login| G
 
-    F -->|/| G[🎬 SplashScreen]
-    F -->|/login| H[🔐 LoginPage]
-    F -->|/register| I[📝 RegisPage]
-    F -->|/reset-password| J[🔄 ResetPassPage]
-    F -->|/dashboard/*| K[💰 ProtectedRoute - Cashier]
-    F -->|/admin/*| L[👨‍💼 ProtectedRoute - Admin]
-    F -->|* lainnya| M[❌ Redirect ke /]
+    G --> L[🔐 LoginPage]
+    L --> M[User Input Credentials]
+    M --> N{Valid Login?}
 
-    G --> N[Progress Bar 0-100%]
-    N --> O[Timer 3 Detik]
-    O --> P[Redirect ke /login]
-    P --> H
+    N -->|Tidak| O[Tampilkan Error]
+    O --> M
 
-    H --> Q[User Input Credentials]
-    Q --> R{Valid Login?}
+    N -->|Ya| P[Panggil login dari AuthContext]
+    P --> Q[Set User State]
+    Q --> R[Simpan ke localStorage]
+    R --> S{Role User?}
 
-    R -->|Tidak| S[Tampilkan Error]
-    S --> Q
+    S -->|cashier| J
+    S -->|admin| K
 
-    R -->|Ya| T[Panggil login dari AuthContext]
-    T --> U[Set User State]
-    U --> V[Simpan ke localStorage]
-    V --> W{Role User?}
+    J --> T[CashierLayout Render]
+    T --> U[CashierHeader + CashierSidebar]
+    U --> V{Navigasi Kasir?}
 
-    W -->|cashier| X[👉 Redirect ke /dashboard]
-    W -->|admin| Y[👉 Redirect ke /admin/dashboard]
+    V -->|/dashboard| W[📊 Dashboard - Buat Pesanan]
+    V -->|/dashboard/sales-report| X[📈 Laporan Penjualan]
+    V -->|/dashboard/settings| Y[⚙️ Pengaturan]
 
-    X --> Z[CashierLayout Render]
-    Z --> AA[CashierHeader + CashierSidebar]
-    AA --> AB{Navigasi Kasir?}
+    W --> Z[Pilih Kategori Menu]
+    Z --> AA[Pilih Item Menu]
+    AA --> AB[Tambah ke Cart]
+    AB --> AC[Update Total]
+    AC --> AD{Klik Pay?}
 
-    AB -->|/dashboard| AC[📊 Dashboard - Buat Pesanan]
-    AB -->|/dashboard/sales-report| AD[📈 Laporan Penjualan]
-    AB -->|/dashboard/settings| AE[⚙️ Pengaturan]
+    AD -->|Tidak| W
+    AD -->|Ya| AE[Buka Payment Panel]
+    AE --> AF[Pilih Metode Pembayaran]
+    AF --> AG[Proses Transaksi]
+    AG --> AH[Transaction Success Modal]
+    AH --> AI[Reset Cart]
+    AI --> W
 
-    AC --> AF[Pilih Kategori Menu]
-    AF --> AG[Pilih Item Menu]
-    AG --> AH[Tambah ke Cart]
-    AH --> AI[Update Total]
-    AI --> AJ{Klik Pay?}
+    W --> AJ{Buka Order Archive?}
+    AJ -->|Ya| AK[OrderArchiveModal]
+    AK --> AL[Lihat Transaksi Sebelumnya]
+    AL --> AM[Tutup Modal]
+    AM --> W
+    AJ -->|Tidak| W
 
-    AJ -->|Tidak| AC
-    AJ -->|Ya| AK[Buka Payment Panel]
-    AK --> AL[Pilih Metode Pembayaran]
-    AL --> AM[Proses Transaksi]
-    AM --> AN[Transaction Success Modal]
-    AN --> AO[Reset Cart]
-    AO --> AC
+    Y --> AN[Edit Profile / Settings]
+    AN --> AO[Save Changes]
+    AO --> AP[Toast: Berhasil]
+    AP --> Y
 
-    Y --> AP[AdminLayout Render]
-    AP --> AQ[AdminHeader + AdminSidebar]
-    AQ --> AR{Navigasi Admin?}
+    X --> AQ[Filter by Date / Category]
+    AQ --> AR[Tampil Tabel Penjualan]
+    AR --> AS[Klik Baris Transaksi]
+    AS --> AT[Detail Transaksi Popup]
+    AT --> AU[Tutup / Export]
+    AU --> X
 
-    AR -->|/admin/dashboard| AS[📊 Dashboard - Analytics]
-    AR -->|/admin/catalog| AT[🍽️ Kelola Menu]
-    AR -->|/admin/sales-report| AU[📈 Laporan Lengkap]
-    AR -->|/admin/settings| AV[⚙️ Pengaturan Admin]
+    K --> AV[AdminLayout Render]
+    AV --> AW[AdminHeader + AdminSidebar]
+    AW --> AX{Navigasi Admin?}
 
-    AT --> AW{Aksi Menu?}
-    AW -->|Tambah| AX[AddMenuForm]
-    AW -->|Edit| AY[DetailMenuPanel]
-    AW -->|Hapus| AZ[DeleteConfirmModal]
-    AW -->|Lihat Detail| BA[DetailMenuPanel]
+    AX -->|/admin/dashboard| AY[📊 Dashboard - Analytics]
+    AX -->|/admin/catalog| AZ[🍽️ Kelola Menu]
+    AX -->|/admin/sales-report| BA[📈 Laporan Lengkap]
+    AX -->|/admin/settings| BB[⚙️ Pengaturan Admin]
 
-    AX --> BB[Simpan Menu Baru]
-    AY --> BC[Update Menu]
-    AZ --> BD[Hapus Menu]
-    BA --> BE[Lihat Detail]
+    AY --> AC1{Klik Bar Chart?}
+    AC1 -->|Ya| AD1[Top Menu Popup - Foods/Beverages/Desserts]
+    AC1 -->|Tidak| AZ
+    AD1 --> AY
 
-    BB --> BF[Refresh UI]
-    BC --> BF
-    BD --> BF
-    BE --> BF
+    AZ --> BE{Aksi Menu?}
+    BE -->|Tambah| BF[AddMenuForm]
+    BE -->|Edit| BG[DetailMenuPanel]
+    BE -->|Hapus| BH[DeleteConfirmModal]
+    BE -->|Lihat Detail| BI[DetailMenuPanel]
 
-    BF --> AS
+    BF --> BJ[Simpan Menu Baru]
+    BG --> BK[Update Menu]
+    BH --> BL[Hapus Menu]
+    BI --> BM[Lihat Detail]
 
-    I --> BG[Form Register]
-    BG --> BH[Submit Data]
-    BH --> BI{Berhasil?}
-    BI -->|Ya| H
-    BI -->|Tidak| BJ[Tampil Error]
-    BJ --> BG
+    BJ --> BN[Toast: Berhasil]
+    BK --> BN
+    BL --> BN
+    BM --> BN
 
-    J --> BK[Form Reset]
-    BK --> BL[Kirim Reset Link]
-    BL --> BM[Tampil Pesan Sukses]
-    BM --> H
+    BN --> AZ
+
+    BA --> BO[Filter by Date]
+    BO --> BP[Tabel Laporan]
+    BP --> BQ[Klik Detail Transaksi]
+    BQ --> BR[TransactionDetailModal]
+    BR --> BS[Export CSV/PDF]
+    BS --> BA
+
+    BB --> BT[Edit Admin Settings]
+    BT --> BU[Save]
+    BU --> BV[Toast: Berhasil]
+    BV --> BB
+
+    F --> L
+    G --> L
+
+    I --> BW[📝 RegisPage]
+    BW --> BX[Form: username, email, password, confirm]
+    BX --> BY{Register Berhasil?}
+    BY -->|Ya| BZ[Toast: Registrasi Sukses]
+    BZ --> L
+    BY -->|Tidak| CA[Tampil Error]
+    CA --> BX
+
+    L --> CB[🔄 ResetPassPage - Lupa Password]
+    CB --> CC[STEP 1: Input Email]
+    CC --> CD[Kirim Link Reset]
+    CD --> CE[STEP 2: Input Token + New Password]
+    CE --> CF{Reset Berhasil?}
+    CF -->|Ya| CG[Toast: Password Diubah]
+    CG --> L
+    CF -->|Tidak| CH[Error: Token Invalid]
+    CH --> CE
+
+    AW --> CI{Klik Logout?}
+    U --> CI
+    CI --> CJ[panggil logout dari AuthContext]
+    CJ --> CK[Set User = null]
+    CK --> CL[Hapus dari localStorage]
+    CL --> G
+```
+
+## 8. Flow Sales Report (Cashier & Admin)
+
+```mermaid
+flowchart TD
+    A[User Buka Sales Report] --> B{Role User?}
+
+    B -->|cashier| C[Cashier SalesReportPage]
+    B -->|admin| D[Admin SalesReportPage]
+
+    C --> E[Default: Laporan Bulan Ini]
+    D --> F[Default: Semua Laporan]
+
+    E --> G[Tampil Filter Section]
+    F --> G
+
+    G --> H{User Set Filter?}
+    H -->|Ya| I[Filter: Start Date, End Date]
+    I --> J[Filter: Order Type, Category]
+    J --> K[Klik 'Terapkan Filter']
+    K --> L[Fetch Data Sesuai Filter]
+
+    H -->|Tidak| L
+
+    L --> M{Tampil Data?}
+    M -->|Ada Data| N[Render Tabel Penjualan]
+    M -->|Tidak| O[Tampil Empty State]
+    O --> G
+
+    N --> P[Tampil: Tanggal, Order ID, Total, Payment Method]
+    P --> Q{User Klik Baris?}
+
+    Q -->|Ya| R[Buka Detail Transaksi Popup]
+    R --> S[Tampil: Item Detail, Subtotal, Tax, Grand Total]
+    S --> T{User Aksi?}
+
+    T -->|Tutup| U[Close Modal]
+    T -->|Export| V[Export Dropdown]
+    V --> W{Pilih Format?}
+
+    W -->|CSV| X[Download CSV]
+    W -->|PDF| Y[Download PDF]
+    W -->|Batal| S
+
+    U --> N
+    X --> G
+    Y --> G
+    Q -->|Tidak| G
+
+    N --> Z{Lihat Summary?}
+    Z -->|Ya| AA[Tampil: Total Sales, Total Orders, Average per Day]
+    AA --> N
+    Z -->|Tidak| N
 ```
 
 ---
 
-## 🗺️ Peta Interaksi User per Halaman
+## 9. Flow Settings (Cashier & Admin)
+
+### 9.1 Cashier Settings
+
+```mermaid
+flowchart TD
+    A[User Buka /dashboard/settings] --> B[SettingsPage Render]
+    B --> C[Tampil: Profile Section]
+
+    C --> D{User Aksi?}
+
+    D -->|Edit Foto| E[Upload/Change Profile Picture]
+    E --> F[Preview Image]
+    F --> G[Save to localStorage / API]
+    G --> H[Toast: Foto Diperbarui]
+    H --> C
+
+    D -->|Hapus Foto| I[Remove Profile Picture]
+    I --> J[Set Default Avatar]
+    J --> C
+
+    D -->|Edit Profile| K[Buka Form Edit]
+    K --> L[Edit: Username, Email]
+    L --> M[Klik 'Simpan Perubahan']
+    M --> N{Validasi Form?}
+
+    N -->|Tidak Valid| O[Tampilkan Error di Field]
+    O --> L
+
+    N -->|Valid| P[Update User Data]
+    P --> Q[Update localStorage]
+    Q --> R[Toast: Profil Diperbarui]
+    R --> C
+
+    D -->|Ganti Password| S[Buka Form Ganti Password]
+    S --> T[Input: Current Password]
+    T --> U[Input: New Password]
+    U --> V[Input: Confirm New Password]
+    V --> W[Klik 'Ubah Password']
+    W --> X{Validasi?}
+
+    X -->|Current Password Salah| Y[Error: Password Lama Salah]
+    Y --> T
+
+    X -->|New Password Tidak Match| Z[Error: Password Tidak Cocok]
+    Z --> U
+
+    X -->|Valid| AA[Update Password di API/localStorage]
+    AA --> AB[Toast: Password Berhasil Diubah]
+    AB --> C
+```
+
+### 9.2 Admin Settings
+
+```mermaid
+flowchart TD
+    A[User Buka /admin/settings] --> B[AdminSettingsPage Render]
+    B --> C[Tampil: Admin Profile + App Settings]
+
+    C --> D{User Aksi?}
+
+    D -->|Edit Profile| E[Form: Username, Email]
+    E --> F[Simpan Perubahan]
+    F --> G[Toast: Profil Admin Diperbarui]
+    G --> C
+
+    D -->|Ganti Password| H[Form: Current + New Password]
+    H --> I[Validasi & Simpan]
+    I --> J[Toast: Password Admin Diubah]
+    J --> C
+
+    D -->|App Settings| K[Form: App Name, Currency, Tax Rate]
+    K --> L[Simpan Konfigurasi]
+    L --> M[Toast: Pengaturan Aplikasi Diperbarui]
+    M --> C
+
+    D -->|Logout| N[Klik Logout]
+    N --> O[Logout dari AuthContext]
+    O --> P[Clear localStorage]
+    P --> Q[Redirect ke /login]
+```
+
+---
+
+## 10. Flow Logout
+
+```mermaid
+flowchart TD
+    A[User Klik Tombol Logout] --> B[Konfirmasi Logout?]
+    B -->|Batal| C[Tetap di Halaman]
+    B -->|Ya| D[Panggil logout dari AuthContext]
+
+    D --> E[Set User = null]
+    E --> F[Remove pos-user dari localStorage]
+    F --> G[Clear Semua State]
+    G --> H[Redirect ke /login]
+    H --> I[LoginPage Render]
+
+    D -.-> J[ProtectedRoute Cek]
+    J --> K{Is Authenticated?}
+    K -->|Tidak| L[Block Akses ke Protected Route]
+    K -->|Ya| M[Allow Akses]
+    K -->|Tidak| H
+```
+
+---
+
+## 11. Flow Error Handling Global
+
+### 11.1 404 Not Found
+
+```mermaid
+flowchart TD
+    A[User Akses URL Tidak Dikenal] --> B[React Router Cek Routes]
+    B --> C{Route Ditemukan?}
+    C -->|Ya| D[Render Halaman]
+    C -->|Tidak| E[Match Route: /*]
+    E --> F[Navigate to / replace]
+    F --> G[Redirect ke / - SplashScreen]
+    G --> H[Redirect ke /login]
+```
+
+### 11.2 Unauthorized Access
+
+```mermaid
+flowchart TD
+    A[User Coba Akses Protected Route] --> B[ProtectedRoute Check]
+    B --> C{Is Authenticated?}
+
+    C -->|Tidak| D[Redirect ke /login]
+    D --> E[Toast: Silakan Login Terlebih Dahulu]
+
+    C -->|Ya| F{Role Match?}
+    F -->|Tidak| G[Redirect ke Dashboard Sesuai Role]
+    G --> H{User Role?}
+
+    H -->|cashier| I[Redirect ke /dashboard]
+    H -->|admin| J[Redirect ke /admin/dashboard]
+    I --> K[Toast: Anda tidak memiliki akses]
+    J --> K
+
+    F -->|Ya| L[Render Outlet - Akses Diberikan]
+```
+
+### 11.3 Token Expired Saat Sudah Login
+
+```mermaid
+flowchart TD
+    A[User Sedang Beraktivitas] --> B{Akses API Endpoint}
+    B --> C{Response: 401 Unauthorized?}
+
+    C -->|Tidak| D[Proses Normal]
+    C -->|Ya| E{Token Expired?}
+
+    E -->|Ya| F[Clear localStorage]
+    F --> G[Set User = null]
+    G --> H[Redirect ke /login]
+    H --> I[Toast: Sesi Anda habis, silakan login ulang]
+
+    E -->|Tidak| J[Error Lain - Tampilkan Pesan]
+    J --> K[Tetap di Halaman]
+```
+
+### 11.4 Network Error
+
+```mermaid
+flowchart TD
+    A[User Melakukan Aksi yang Butuh API] --> B[Fetch/Axios Request]
+    B --> C{Response Status?}
+
+    C -->|200 OK| D[Proses Data]
+    C -->|400 Bad Request| E[Toast: Data tidak valid]
+    C -->|401 Unauthorized| F[Redirect ke /login]
+    C -->|403 Forbidden| G[Toast: Akses Ditolak]
+    C -->|404 Not Found| H[Toast: Data tidak ditemukan]
+    C -->|500 Server Error| I[Toast: Terjadi kesalahan server]
+    C -->|Network Error| J[Toast: Koneksi internet bermasalah]
+    C -->|Timeout| K[Toast: Request timeout]
+
+    E --> L[Kembali ke Form]
+    G --> L
+    H --> L
+    I --> L
+    J --> L
+    K --> L
+    F --> M[LoginPage]
+    D --> N[Update UI]
+```
+
+---
+
+## 12. 🗺️ Peta Interaksi User per Halaman
 
 ### 👤 Kasir (Cashier)
 
@@ -424,7 +783,7 @@ flowchart TD
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │                  ORDER PANEL                         │   │
 │  │                                                      │   │
-│  │  Order Type: Dine In | Take Away | Delivery          │   │
+│  │  Order Type: Dine In | Take Away               │   │
 │  │                                                      │   │
 │  │  ┌──────────────────────────────────────────────┐   │   │
 │  │  │ Cart Items:                                  │   │   │
@@ -481,7 +840,7 @@ flowchart TD
 
 ---
 
-## 🔐 State Management Flow
+## 13. 🔐 State Management Flow
 
 ```mermaid
 flowchart TD
@@ -515,7 +874,7 @@ flowchart TD
 
 ---
 
-## 📊 Komponen Hierarki Lengkap
+## 14. 📊 Komponen Hierarki Lengkap
 
 ### Cashier Layout Components
 
