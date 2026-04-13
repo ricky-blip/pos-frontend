@@ -296,10 +296,16 @@ flowchart LR
     D1 --> I1[DetailMenuPanel]
     D1 --> J1[DeleteConfirmModal]
 
-    K1[SalesReportPage] --> L1[Toast]
+    K1[SalesReportPage] --> L1[DateRangeFilter]
+    K1 --> M1[CategoryFilter]
+    K1 --> N1[OrderTypeFilter]
+    K1 --> O1[SalesTable]
+    O1 --> P1[DetailTransactionModal]
+    O1 --> Q1[ExportButton]
+    K1 --> R1[Toast]
 
-    M1[SettingsPage] --> N1[AdminSidebar]
-    M1 --> O1[AdminHeader]
+    S1[SettingsPage] --> T1[AdminSidebar]
+    S1 --> U1[AdminHeader]
 ```
 
 ---
@@ -445,10 +451,10 @@ flowchart TD
     AX -->|/admin/sales-report| BA[📈 Laporan Lengkap]
     AX -->|/admin/settings| BB[⚙️ Pengaturan Admin]
 
-    AY --> AC1{Klik Bar Chart?}
-    AC1 -->|Ya| AD1[Top Menu Popup - Foods/Beverages/Desserts]
-    AC1 -->|Tidak| AZ
-    AD1 --> AY
+    AY --> BC1{Klik Bar Chart?}
+    BC1 -->|Ya| BD1[Top Menu Popup - Foods/Beverages/Desserts]
+    BC1 -->|Tidak| AZ
+    BD1 --> AY
 
     AZ --> BE{Aksi Menu?}
     BE -->|Tambah| BF[AddMenuForm]
@@ -483,30 +489,32 @@ flowchart TD
     F --> L
     G --> L
 
-    I --> BW[📝 RegisPage]
-    BW --> BX[Form: username, email, password, confirm]
-    BX --> BY{Register Berhasil?}
-    BY -->|Ya| BZ[Toast: Registrasi Sukses]
-    BZ --> L
-    BY -->|Tidak| CA[Tampil Error]
-    CA --> BX
+    L --> BW{User Butuh Akun?}
+    BW -->|Ya| BX[📝 Klik Link Register]
+    BX --> BY[RegisPage Render]
+    BY --> BZ[Form: username, email, password, confirm]
+    BZ --> CA{Register Berhasil?}
+    CA -->|Ya| CB[Toast: Registrasi Sukses]
+    CB --> L
+    CA -->|Tidak| CC[Tampil Error]
+    CC --> BZ
+    BW -->|Lupa Password| CD[🔄 Klik Link Lupa Password]
+    CD --> CE[ResetPassPage Render]
+    CE --> CF[STEP 1: Input Email]
+    CF --> CG[Kirim Link Reset]
+    CG --> CH[STEP 2: Input Token + New Password]
+    CH --> CI{Reset Berhasil?}
+    CI -->|Ya| CJ[Toast: Password Diubah]
+    CJ --> L
+    CI -->|Tidak| CK[Error: Token Invalid]
+    CK --> CH
 
-    L --> CB[🔄 ResetPassPage - Lupa Password]
-    CB --> CC[STEP 1: Input Email]
-    CC --> CD[Kirim Link Reset]
-    CD --> CE[STEP 2: Input Token + New Password]
-    CE --> CF{Reset Berhasil?}
-    CF -->|Ya| CG[Toast: Password Diubah]
-    CG --> L
-    CF -->|Tidak| CH[Error: Token Invalid]
-    CH --> CE
-
-    AW --> CI{Klik Logout?}
-    U --> CI
-    CI --> CJ[panggil logout dari AuthContext]
-    CJ --> CK[Set User = null]
-    CK --> CL[Hapus dari localStorage]
-    CL --> G
+    AW --> CL{Klik Logout?}
+    U --> CL
+    CL --> CM[panggil logout dari AuthContext]
+    CM --> CN[Set User = null]
+    CN --> CO[Hapus dari localStorage]
+    CO --> G
 ```
 
 ## 8. Flow Sales Report (Cashier & Admin)
@@ -622,7 +630,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     A[User Buka /admin/settings] --> B[AdminSettingsPage Render]
-    B --> C[Tampil: Admin Profile + App Settings]
+    B --> C[Tampil: Admin Profile + Appearance Settings]
 
     C --> D{User Aksi?}
 
@@ -636,9 +644,9 @@ flowchart TD
     I --> J[Toast: Password Admin Diubah]
     J --> C
 
-    D -->|App Settings| K[Form: App Name, Currency, Tax Rate]
-    K --> L[Simpan Konfigurasi]
-    L --> M[Toast: Pengaturan Aplikasi Diperbarui]
+    D -->|Appearance| K[Form: Theme Mode, Font Size, Zoom Level]
+    K --> L[Simpan Preferensi]
+    L --> M[Toast: Preferensi Tampilan Diperbarui]
     M --> C
 
     D -->|Logout| N[Klik Logout]
@@ -662,12 +670,6 @@ flowchart TD
     F --> G[Clear Semua State]
     G --> H[Redirect ke /login]
     H --> I[LoginPage Render]
-
-    D -.-> J[ProtectedRoute Cek]
-    J --> K{Is Authenticated?}
-    K -->|Tidak| L[Block Akses ke Protected Route]
-    K -->|Ya| M[Allow Akses]
-    K -->|Tidak| H
 ```
 
 ---
