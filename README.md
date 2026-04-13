@@ -1,3 +1,13 @@
+📌 ADMIN LOGIN:
+   Username: admin
+   Password: admin123
+   → Redirect ke: /admin/dashboard
+
+📌 CASHIER LOGIN:
+   Username: cashier
+   Password: cashier123
+   → Redirect ke: /dashboard
+
 # 📘 Panduan Aplikasi POS Frontend
 
 Aplikasi Point of Sale (POS) yang dibangun dengan React, Vite, dan Tailwind CSS.
@@ -12,7 +22,9 @@ Aplikasi Point of Sale (POS) yang dibangun dengan React, Vite, dan Tailwind CSS.
   - [Teknologi yang Digunakan](#teknologi-yang-digunakan)
   - [Alur Aplikasi dari Awal](#alur-aplikasi-dari-awal)
     - [Langkah 1: Aplikasi Dimulai dari `main.jsx`](#langkah-1-aplikasi-dimulai-dari-mainjsx)
+      - [📖 Penjelasan:](#-penjelasan)
     - [Langkah 2: `main.jsx` Memanggil `App.jsx`](#langkah-2-mainjsx-memanggil-appjsx)
+      - [📖 Penjelasan:](#-penjelasan-1)
     - [Langkah 3: `App.jsx` Mengatur Semua Halaman (Routing)](#langkah-3-appjsx-mengatur-semua-halaman-routing)
       - [🗺️ Peta Sederhana Routing:](#️-peta-sederhana-routing)
       - [📋 Detail Setiap Route:](#-detail-setiap-route)

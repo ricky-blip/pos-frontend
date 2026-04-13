@@ -1,21 +1,45 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../shared/AuthContext";
 import authBackground from "../../../assets/images/auth_background.png";
 import mainCircleLogo from "../../../assets/images/main_circle_logo.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
+
+    // Simulate API call with role-based authentication
     setTimeout(() => {
+      // Demo credentials:
+      // Admin: username = "admin", password = "admin123"
+      // Cashier: username = "cashier", password = "cashier123"
+      if (username === "admin" && password === "admin123") {
+        login({
+          username: "John Doe",
+          role: "admin",
+        });
+        navigate("/admin/dashboard");
+      } else if (username === "cashier" && password === "cashier123") {
+        login({
+          username: "John Doe",
+          role: "cashier",
+        });
+        navigate("/dashboard");
+      } else {
+        setError("Invalid username or password");
+      }
+
       setIsLoading(false);
-      navigate("/dashboard");
     }, 1000);
   };
 
@@ -64,6 +88,13 @@ export default function LoginPage() {
             </p>
 
             <form onSubmit={handleLogin}>
+              {/* Error Message */}
+              {error && (
+                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+
               {/* Username */}
               <div className="mb-4">
                 <label
@@ -140,6 +171,13 @@ export default function LoginPage() {
               >
                 {isLoading ? "Loading..." : "Login"}
               </button>
+
+              {/* Demo Credentials */}
+              <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+                <p className="mb-1 text-xs font-semibold text-blue-800">Demo Credentials:</p>
+                <p className="text-xs text-blue-700">Admin: admin / admin123</p>
+                <p className="text-xs text-blue-700">Cashier: cashier / cashier123</p>
+              </div>
             </form>
 
             {/* Register link */}

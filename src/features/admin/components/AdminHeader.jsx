@@ -1,25 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../../../shared/AuthContext";
+import { useAuth } from "../../../shared/AuthContext";
 
 function SearchIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
       <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function ArchiveIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="2" y="3" width="20" height="5" rx="1" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8M10 12h4"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
     </svg>
   );
 }
@@ -39,10 +25,9 @@ function LogoutIcon() {
 }
 
 /**
- * CashierHeader - Shared header component for all cashier pages
- * @param {Function} onOrderArchive - Callback when order archive button is clicked
+ * AdminHeader - Shared header component for all admin pages
  */
-export default function CashierHeader({ onOrderArchive }) {
+export default function AdminHeader() {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -68,19 +53,8 @@ export default function CashierHeader({ onOrderArchive }) {
           </div>
         </div>
 
-        {/* Right Section: Order Archive + User Profile + Logout */}
+        {/* Right Section: User Profile + Logout */}
         <div className="flex items-center gap-4">
-          {onOrderArchive && (
-            <button
-              type="button"
-              onClick={onOrderArchive}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] hover:text-[#3b5bdb]"
-            >
-              <ArchiveIcon />
-              <span>Order Archive</span>
-            </button>
-          )}
-
           <div className="flex items-center gap-3 border-l border-[#e5e7eb] pl-4">
             <img
               src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"
@@ -89,7 +63,7 @@ export default function CashierHeader({ onOrderArchive }) {
             />
             <div>
               <p className="text-sm font-semibold text-[#111827]">John Doe</p>
-              <p className="text-xs text-[#9ca3af]">Cashier</p>
+              <p className="text-xs text-[#9ca3af]">Admin</p>
             </div>
             <button
               type="button"
