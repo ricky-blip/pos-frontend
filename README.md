@@ -1,22 +1,24 @@
-📌 ADMIN LOGIN:
-   Username: admin
-   Password: admin123
-   → Redirect ke: /admin/dashboard
-
-📌 CASHIER LOGIN:
-   Username: cashier
-   Password: cashier123
-   → Redirect ke: /dashboard
-
 # 📘 Panduan Aplikasi POS Frontend
 
 Aplikasi Point of Sale (POS) yang dibangun dengan React, Vite, dan Tailwind CSS.
 
 ---
 
+## 🔐 Login Credentials
+
+| Role | Username | Password | Redirect |
+|------|----------|----------|----------|
+| 👨‍💼 Admin | `admin` | `admin123` | `/admin/dashboard` |
+| 💰 Kasir | `cashier` | `cashier123` | `/dashboard` |
+
+> **Catatan:** Login saat ini masih **simulasi** dan belum terhubung ke API/backend nyata.
+
+---
+
 ## 📚 Daftar Isi
 
 - [📘 Panduan Aplikasi POS Frontend](#-panduan-aplikasi-pos-frontend)
+  - [🔐 Login Credentials](#-login-credentials)
   - [📚 Daftar Isi](#-daftar-isi)
   - [Aplikasi Ini Itu Apa?](#aplikasi-ini-itu-apa)
   - [Teknologi yang Digunakan](#teknologi-yang-digunakan)
@@ -51,6 +53,8 @@ Aplikasi Point of Sale (POS) yang dibangun dengan React, Vite, dan Tailwind CSS.
     - [3. useEffect (Effect)](#3-useeffect-effect)
     - [4. useNavigate (Navigasi)](#4-usenavigate-navigasi)
     - [5. Outlet (dari React Router)](#5-outlet-dari-react-router)
+    - [6. AuthContext (Authentication State)](#6-authcontext-authentication-state)
+    - [7. ProtectedRoute (Proteksi Halaman)](#7-protectedroute-proteksi-halaman)
   - [Istilah-Istilah yang Sering Digunakan](#istilah-istilah-yang-sering-digunakan)
   - [🎯 Rangkuman Alur Aplikasi](#-rangkuman-alur-aplikasi)
   - [💡 Tips](#-tips)
@@ -208,9 +212,9 @@ Halaman lain   Halaman lain
 | `/dashboard/sales-report` | Laporan Penjualan | CashierLayout (header + sidebar) | Kasir |
 | `/dashboard/settings` | Pengaturan | CashierLayout (header + sidebar) | Kasir |
 | `/admin/dashboard` | Dashboard Admin | AdminLayout (header + sidebar) | Admin |
-| `/admin/reports` | Laporan | AdminLayout (header + sidebar) | Admin |
-| `/admin/menus` | Kelola Menu | AdminLayout (header + sidebar) | Admin |
-| `/admin/users` | Kelola Pengguna | AdminLayout (header + sidebar) | Admin |
+| `/admin/catalog` | Kelola Menu | AdminLayout (header + sidebar) | Admin |
+| `/admin/sales-report` | Laporan Penjualan | AdminLayout (header + sidebar) | Admin |
+| `/admin/settings` | Pengaturan Admin | AdminLayout (header + sidebar) | Admin |
 
 ---
 
@@ -297,9 +301,21 @@ Catatan: Saat ini login masih **simulasi** (belum pakai API/database). Nanti bis
 
 ### Login → Dashboard Admin
 
-Untuk masuk ke dashboard admin, tinggal buka path `/admin/dashboard`. Saat ini tidak ada redirect otomatis dari login ke admin.
+Untuk masuk ke dashboard admin, tinggal buka path `/admin/dashboard`. 
 
-Catatan: Nanti bisa ditambahkan logika untuk mengecek role pengguna (admin/kasir) dan redirect otomatis!
+**Proteksi Role:** Aplikasi sekarang menggunakan **ProtectedRoute** yang memastikan hanya user dengan role yang sesuai bisa mengakses halaman tertentu:
+
+```jsx
+{/* Admin Routes - Protected, requires admin role */}
+<Route element={<ProtectedRoute requiredRole="admin" />}>
+  <Route element={<AdminLayout />}>
+    <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+    {/* ... admin routes lainnya ... */}
+  </Route>
+</Route>
+```
+
+Jika user tanpa role `admin` mencoba akses `/admin/*`, mereka akan di-redirect ke `/login`.
 
 ---
 
@@ -314,46 +330,83 @@ src/
 │
 ├── features/                    ← FOLDER FITUR (berdasarkan role)
 │   ├── auth/                    ← Fitur Authentication (Login, Register, Reset)
-│   │   └── pages/
-│   │       ├── LoginPage.jsx    ← Halaman Login
-│   │       ├── RegisPage.jsx    ← Halaman Register
-│   │       └── ResetPassPage.jsx← Halaman Reset Password
+│   │   ├── pages/
+│   │   │   ├── LoginPage.jsx    ← Halaman Login
+│   │   │   ├── RegisPage.jsx    ← Halaman Register
+│   │   │   └── ResetPassPage.jsx← Halaman Reset Password
+│   │   ├── index.js             ← Export komponen auth
+│   │   └── README.md            ← Dokumentasi fitur auth
 │   │
 │   ├── splashscreen/            ← Fitur Splash Screen
-│   │   └── SplashScreen.jsx     ← Halaman pembuka aplikasi
+│   │   ├── SplashScreen.jsx     ← Halaman pembuka aplikasi
+│   │   └── index.js             ← Export SplashScreen
 │   │
 │   ├── cashier/                 ← Fitur untuk Kasir
 │   │   ├── pages/               ← Halaman-halaman kasir
 │   │   │   └── CashierDashboardPage.jsx
+│   │   ├── components/          ← Komponen-komponen kasir
+│   │   │   ├── CashierHeader.jsx
+│   │   │   ├── CashierSidebar.jsx
+│   │   │   ├── OrderPanel.jsx
+│   │   │   ├── CategoryTabs.jsx
+│   │   │   ├── MenuSection.jsx
+│   │   │   ├── MenuGrid.jsx
+│   │   │   ├── MenuCard.jsx
+│   │   │   ├── TransactionSuccessModal.jsx
+│   │   │   ├── DetailMenuModal.jsx
+│   │   │   ├── OrderArchiveModal.jsx
+│   │   │   ├── OrderItemsList.jsx
+│   │   │   ├── OrderHeader.jsx
+│   │   │   ├── OrderSummary.jsx
+│   │   │   ├── OrderTypeToggle.jsx
+│   │   │   ├── PayBar.jsx
+│   │   │   ├── PaymentSection.jsx
+│   │   │   ├── CustomerForm.jsx
+│   │   │   ├── EmptyOrderState.jsx
+│   │   │   └── ItemNoteModal.jsx
+│   │   ├── data/                ← Data mock untuk kasir
+│   │   │   ├── mockMenus.js
+│   │   │   └── mockCategories.js
+│   │   ├── dashboard/           ← Fitur dashboard kasir
+│   │   ├── sales-report/        ← Fitur laporan penjualan
+│   │   ├── settings/            ← Fitur pengaturan kasir
 │   │   ├── layouts/             ← Layout untuk kasir
 │   │   │   └── CashierLayout.jsx
-│   │   ├── components/          ← Komponen-komponen kasir
-│   │   │   └── shared/          ← Komponen yang dipakai bersama
-│   │   │       ├── CashierHeader.jsx
-│   │   │       ├── CashierSidebar.jsx
-│   │   │       └── OrderArchiveModal.jsx
-│   │   ├── dashboard/           ← Fitur dashboard kasir
-│   │   │   └── components/      ← Komponen dashboard
-│   │   ├── sales-report/        ← Fitur laporan penjualan
-│   │   └── settings/            ← Fitur pengaturan
+│   │   ├── index.js             ← Export komponen kasir
+│   │   └── README.md            ← Dokumentasi fitur kasir
 │   │
 │   └── admin/                   ← Fitur untuk Admin
 │       ├── pages/               ← Halaman-halaman admin
 │       │   ├── AdminDashboardPage.jsx
-│       │   ├── ReportsPage.jsx
 │       │   ├── MenuManagementPage.jsx
-│       │   └── UserManagementPage.jsx
-│       └── layouts/             ← Layout untuk admin
-│           └── AdminLayout.jsx
+│       │   ├── SalesReportPage.jsx
+│       │   └── SettingsPage.jsx
+│       ├── components/          ← Komponen-komponen admin
+│       ├── data/                ← Data mock untuk admin
+│       ├── hooks/               ← Custom hooks admin
+│       ├── layouts/             ← Layout untuk admin
+│       │   └── AdminLayout.jsx
+│       ├── index.js             ← Export komponen admin
+│       └── README.md            ← Dokumentasi fitur admin
 │
 ├── shared/                      ← KOMPONEN BERSAMA (dipakai di mana-mana)
-│   └── AuthLayout.jsx           ← Layout untuk halaman auth (login, register)
+│   ├── AuthLayout.jsx           ← Layout untuk halaman auth (login, register)
+│   ├── AuthContext.jsx          ← Context untuk authentication state
+│   ├── ProtectedRoute.jsx       ← Proteksi route berdasarkan role
+│   └── ToastContext.jsx         ← Context untuk notifikasi toast
+│
+├── router/                      ← Konfigurasi routing (future use)
+│
+├── assets/                      ← Aset statis (gambar, font, dll)
 │
 ├── styles/                      ← FILE CSS
 │   └── index.css                ← CSS global
 │
-└── constants/                   ← KONSTANTA
-    └── colors.js                ← Warna-warna yang dipakai
+├── constants/                   ← KONSTANTA
+│   └── colors.js                ← Warna-warna yang dipakai
+│
+├── App.jsx                      ← Pengatur routing dengan AuthProvider
+└── main.jsx                     ← Entry point aplikasi
 ```
 
 ---
@@ -529,10 +582,10 @@ const [username, setUsername] = useState("")
 useEffect(() => {
   // Kode ini dijalankan sekali saat komponen muncul
   console.log("SplashScreen muncul!")
-  
+
   // Setelah 3 detik, pindah ke Login
   const timer = setTimeout(() => navigate("/login"), 3000)
-  
+
   // Cleanup saat komponen hilang
   return () => clearTimeout(timer)
 }, [])
@@ -566,6 +619,40 @@ export default function AuthLayout() {
   )
 }
 ```
+
+### 6. AuthContext (Authentication State)
+
+**File:** `src/shared/AuthContext.jsx`
+
+`AuthContext` digunakan untuk menyimpan state autentikasi (user login, role, dll) yang bisa diakses dari komponen mana pun.
+
+```jsx
+// Menggunakannya di komponen
+import { useAuth } from "../../shared/AuthContext"
+
+function MyComponent() {
+  const { user, login, logout } = useAuth()
+  
+  return <div>Welcome, {user?.username}!</div>
+}
+```
+
+### 7. ProtectedRoute (Proteksi Halaman)
+
+**File:** `src/shared/ProtectedRoute.jsx`
+
+`ProtectedRoute` memastikan hanya user yang sudah login dengan role yang sesuai bisa mengakses halaman tertentu.
+
+```jsx
+// Di App.jsx
+<Route element={<ProtectedRoute requiredRole="admin" />}>
+  <Route element={<AdminLayout />}>
+    <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+  </Route>
+</Route>
+```
+
+Jika user belum login atau role-nya tidak sesuai, mereka akan di-redirect ke `/login`.
 
 ---
 
@@ -654,9 +741,3 @@ export default function AuthLayout() {
 - [Vite Documentation](https://vitejs.dev/guide/)
 
 ---
-
-**Selamat belajar! 🚀** Jika ada yang kurang jelas, jangan ragu untuk bertanya!
-
----
-
-*Dibuat dengan ❤️*

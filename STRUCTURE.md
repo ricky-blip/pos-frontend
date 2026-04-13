@@ -94,18 +94,20 @@ pos-frontend/
 | `/register` | RegisPage | auth |
 | `/reset-password` | ResetPassPage | auth |
 
-### 💰 Cashier Routes (Cashier Role)
+### 💰 Cashier Routes (Protected - Cashier Role)
 | Route | Component | Feature |
 |-------|-----------|---------|
 | `/dashboard` | CashierDashboardPage | cashier |
+| `/dashboard/sales-report` | SalesReportPage | cashier |
+| `/dashboard/settings` | SettingsPage | cashier |
 
-### 👨‍ Admin Routes (Admin Role)
+### 👨‍💼 Admin Routes (Protected - Admin Role)
 | Route | Component | Feature |
 |-------|-----------|---------|
 | `/admin/dashboard` | AdminDashboardPage | admin |
-| `/admin/reports` | ReportsPage | admin |
-| `/admin/menus` | MenuManagementPage | admin |
-| `/admin/users` | UserManagementPage | admin |
+| `/admin/catalog` | MenuManagementPage | admin |
+| `/admin/sales-report` | SalesReportPage | admin |
+| `/admin/settings` | SettingsPage | admin |
 
 ## Import Examples
 
