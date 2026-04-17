@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../../shared/AuthContext";
+import useAuthStore from "../../../stores/useAuthStore";
 
 function SearchIcon() {
   return (
@@ -29,7 +29,7 @@ function LogoutIcon() {
  */
 export default function AdminHeader() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const logout = useAuthStore((s) => s.logout);
 
   const handleLogout = () => {
     logout();

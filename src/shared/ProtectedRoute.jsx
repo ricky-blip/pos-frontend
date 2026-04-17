@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../shared/AuthContext";
+import useAuthStore from "../stores/useAuthStore";
 
 /**
  * ProtectedRoute - Wrapper component for protected routes
@@ -7,7 +7,8 @@ import { useAuth } from "../shared/AuthContext";
  * @param {string} redirectPath - Path to redirect if not authenticated (default: "/login")
  */
 export default function ProtectedRoute({ requiredRole, redirectPath = "/login" }) {
-  const { isAuthenticated, user } = useAuth();
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = !!user;
 
   // If not authenticated, redirect to login
   if (!isAuthenticated) {

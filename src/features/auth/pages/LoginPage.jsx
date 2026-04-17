@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../../shared/AuthContext";
+import useAuthStore from "../../../stores/useAuthStore";
 import authBackground from "../../../assets/images/auth_background.png";
 import mainCircleLogo from "../../../assets/images/main_circle_logo.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const login = useAuthStore((s) => s.login);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

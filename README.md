@@ -53,7 +53,7 @@ Aplikasi Point of Sale (POS) yang dibangun dengan React, Vite, dan Tailwind CSS.
     - [3. useEffect (Effect)](#3-useeffect-effect)
     - [4. useNavigate (Navigasi)](#4-usenavigate-navigasi)
     - [5. Outlet (dari React Router)](#5-outlet-dari-react-router)
-    - [6. AuthContext (Authentication State)](#6-authcontext-authentication-state)
+    - [6. Zustand Store (State Management)](#6-zustand-store-state-management)
     - [7. ProtectedRoute (Proteksi Halaman)](#7-protectedroute-proteksi-halaman)
   - [Istilah-Istilah yang Sering Digunakan](#istilah-istilah-yang-sering-digunakan)
   - [🎯 Rangkuman Alur Aplikasi](#-rangkuman-alur-aplikasi)
@@ -389,11 +389,14 @@ src/
 │       ├── index.js             ← Export komponen admin
 │       └── README.md            ← Dokumentasi fitur admin
 │
+├── stores/                      ← ZUSTAND STORES (State Management)
+│   ├── useAuthStore.jsx         ← Store untuk authentication state
+│   └── useToastStore.jsx        ← Store untuk notifikasi toast
+│
 ├── shared/                      ← KOMPONEN BERSAMA (dipakai di mana-mana)
 │   ├── AuthLayout.jsx           ← Layout untuk halaman auth (login, register)
-│   ├── AuthContext.jsx          ← Context untuk authentication state
 │   ├── ProtectedRoute.jsx       ← Proteksi route berdasarkan role
-│   └── ToastContext.jsx         ← Context untuk notifikasi toast
+│   └── ToastNotification.jsx    ← Komponen UI untuk render toast
 │
 ├── router/                      ← Konfigurasi routing (future use)
 │
@@ -405,7 +408,7 @@ src/
 ├── constants/                   ← KONSTANTA
 │   └── colors.js                ← Warna-warna yang dipakai
 │
-├── App.jsx                      ← Pengatur routing dengan AuthProvider
+├── App.jsx                      ← Pengatur routing aplikasi utama
 └── main.jsx                     ← Entry point aplikasi
 ```
 
@@ -620,20 +623,26 @@ export default function AuthLayout() {
 }
 ```
 
-### 6. AuthContext (Authentication State)
+### 6. Zustand Store (State Management)
 
-**File:** `src/shared/AuthContext.jsx`
+**File:** `src/stores/useAuthStore.jsx` & `src/stores/useToastStore.jsx`
 
-`AuthContext` digunakan untuk menyimpan state autentikasi (user login, role, dll) yang bisa diakses dari komponen mana pun.
+Aplikasi ini menggunakan **Zustand** (library state management yang ringan dan cepat) untuk menyimpan data global (seperti status login user dan notifikasi toast) yang bisa diakses dari mana pun. Penggunaan Zustand menghilangkan limitasi Provider wrapper pada root aplikasi.
 
 ```jsx
 // Menggunakannya di komponen
-import { useAuth } from "../../shared/AuthContext"
+import useAuthStore from "../../stores/useAuthStore"
 
 function MyComponent() {
-  const { user, login, logout } = useAuth()
+  const user = useAuthStore((s) => s.user)
+  const logout = useAuthStore((s) => s.logout)
   
-  return <div>Welcome, {user?.username}!</div>
+  return (
+    <div>
+      Welcome, {user?.username}!
+      <button onClick={logout}>Logout</button>
+    </div>
+  )
 }
 ```
 

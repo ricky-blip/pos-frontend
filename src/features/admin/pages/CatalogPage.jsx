@@ -5,7 +5,7 @@ import AddMenuForm from "../components/AddMenuForm";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import DetailMenuPanel from "../components/DetailMenuPanel";
 import { useMenuAPI } from "../hooks/useMenuAPI";
-import { useToast } from "../../../shared/ToastContext";
+import useToastStore from "../../../stores/useToastStore";
 
 /**
  * CatalogPage - Halaman utama untuk mengelola menu/catalog
@@ -25,7 +25,7 @@ export default function CatalogPage() {
   const [filteredMenus, setFilteredMenus] = useState([]);
   
   const { menus, loading, fetchMenus, addMenu, updateMenu, deleteMenu } = useMenuAPI();
-  const { showToast } = useToast();
+  const showToast = useToastStore((s) => s.showToast);
 
   // Fetch menus when category changes
   useEffect(() => {

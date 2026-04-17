@@ -4,20 +4,38 @@
 
 ## 📋 Daftar Isi
 
-- [1. Flow Utama Aplikasi](#1-flow-utama-aplikasi)
-- [2. Flow Autentikasi](#2-flow-autentikasi)
-- [3. Flow Dashboard Kasir](#3-flow-dashboard-kasir)
-- [4. Flow Dashboard Admin](#4-flow-dashboard-admin)
-- [5. Flow ProtectedRoute](#5-flow-protectedroute)
-- [6. Flow AuthContext](#6-flow-authcontext)
-- [7. Flow Lengkap dari Awal sampai Akhir](#7-flow-lengkap-dari-awal-sampai-akhir)
-- [8. Flow Sales Report](#8-flow-sales-report-cashier--admin)
-- [9. Flow Settings](#9-flow-settings-cashier--admin)
-- [10. Flow Logout](#10-flow-logout)
-- [11. Flow Error Handling Global](#11-flow-error-handling-global)
-- [12. Peta Interaksi User per Halaman](#12-️-peta-interaksi-user-per-halaman)
-- [13. State Management Flow](#13--state-management-flow)
-- [14. Komponen Hierarki Lengkap](#14--komponen-hierarki-lengkap)
+- [🔄 Flowchart Aplikasi POS Frontend](#-flowchart-aplikasi-pos-frontend)
+  - [📋 Daftar Isi](#-daftar-isi)
+  - [1. Flow Utama Aplikasi](#1-flow-utama-aplikasi)
+  - [2. Flow Autentikasi](#2-flow-autentikasi)
+    - [2.1 Flow Login](#21-flow-login)
+    - [2.2 Flow Register](#22-flow-register)
+    - [2.3 Flow Reset Password (2 Step)](#23-flow-reset-password-2-step)
+  - [3. Flow Dashboard Kasir](#3-flow-dashboard-kasir)
+    - [3.1 Komponen Dashboard Kasir](#31-komponen-dashboard-kasir)
+  - [4. Flow Dashboard Admin](#4-flow-dashboard-admin)
+    - [4.1 Komponen Dashboard Admin](#41-komponen-dashboard-admin)
+  - [5. Flow ProtectedRoute](#5-flow-protectedroute)
+  - [6. Flow AuthContext](#6-flow-authcontext)
+  - [7. Flow Lengkap dari Awal sampai Akhir](#7-flow-lengkap-dari-awal-sampai-akhir)
+  - [8. Flow Sales Report (Cashier \& Admin)](#8-flow-sales-report-cashier--admin)
+  - [9. Flow Settings (Cashier \& Admin)](#9-flow-settings-cashier--admin)
+    - [9.1 Cashier Settings](#91-cashier-settings)
+    - [9.2 Admin Settings](#92-admin-settings)
+  - [10. Flow Logout](#10-flow-logout)
+  - [11. Flow Error Handling Global](#11-flow-error-handling-global)
+    - [11.1 404 Not Found](#111-404-not-found)
+    - [11.2 Unauthorized Access](#112-unauthorized-access)
+    - [11.3 Token Expired Saat Sudah Login](#113-token-expired-saat-sudah-login)
+    - [11.4 Network Error](#114-network-error)
+  - [12. 🗺️ Peta Interaksi User per Halaman](#12-️-peta-interaksi-user-per-halaman)
+    - [👤 Kasir (Cashier)](#-kasir-cashier)
+    - [👨‍💼 Admin](#-admin)
+  - [13. 🔐 State Management Flow](#13--state-management-flow)
+  - [14. 📊 Komponen Hierarki Lengkap](#14--komponen-hierarki-lengkap)
+    - [Cashier Layout Components](#cashier-layout-components)
+    - [Admin Layout Components](#admin-layout-components)
+  - [🚀 Tips Membaca Flowchart](#-tips-membaca-flowchart)
 
 ---
 
@@ -278,7 +296,7 @@ flowchart TD
 
     G --> AA{Klik Bar Chart?}
     AA -->|Ya| AB[Top Menu Popup - Foods/Beverages/Desserts]
-    AA -->|Tidak| H
+    AA -->|Tidak| G
     AB --> G
 ```
 
@@ -304,8 +322,9 @@ flowchart LR
     O1 --> Q1[ExportButton]
     K1 --> R1[Toast]
 
-    S1[SettingsPage] --> T1[AdminSidebar]
-    S1 --> U1[AdminHeader]
+    S1[SettingsPage] --> T1[ProfileForm]
+    S1 --> U1[PasswordForm]
+    S1 --> V1[AppearanceForm]
 ```
 
 ---
@@ -453,7 +472,7 @@ flowchart TD
 
     AY --> BC1{Klik Bar Chart?}
     BC1 -->|Ya| BD1[Top Menu Popup - Foods/Beverages/Desserts]
-    BC1 -->|Tidak| AZ
+    BC1 -->|Tidak| AY
     BD1 --> AY
 
     AZ --> BE{Aksi Menu?}
@@ -661,9 +680,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[User Klik Tombol Logout] --> B[Konfirmasi Logout?]
-    B -->|Batal| C[Tetap di Halaman]
-    B -->|Ya| D[Panggil logout dari AuthContext]
+    A[User Klik Tombol Logout] --> D[Panggil logout dari AuthContext]
 
     D --> E[Set User = null]
     E --> F[Remove pos-user dari localStorage]

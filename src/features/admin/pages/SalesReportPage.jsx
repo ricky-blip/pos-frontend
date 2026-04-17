@@ -1,6 +1,6 @@
 import { useState } from "react";
 import TransactionDetailModal from "../components/TransactionDetailModal";
-import { useToast } from "../../../shared/ToastContext";
+import useToastStore from "../../../stores/useToastStore";
 
 /**
  * SalesReportPage - Halaman laporan penjualan untuk admin
@@ -12,7 +12,7 @@ import { useToast } from "../../../shared/ToastContext";
  * - Transaction detail modal
  */
 export default function SalesReportPage() {
-  const { showToast } = useToast();
+  const showToast = useToastStore((s) => s.showToast);
   const [filters, setFilters] = useState({
     startDate: "",
     endDate: "",

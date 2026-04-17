@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useToast } from "../../../shared/ToastContext";
+import useToastStore from "../../../stores/useToastStore";
 
 /**
  * SettingsPage - Halaman pengaturan untuk admin
@@ -9,7 +9,7 @@ import { useToast } from "../../../shared/ToastContext";
  * - Appearance settings (theme, font size, zoom)
  */
 export default function SettingsPage() {
-  const { showToast } = useToast();
+  const showToast = useToastStore((s) => s.showToast);
   const [formData, setFormData] = useState({
     email: "johndoe@gmail.com",
     username: "John Doe",
