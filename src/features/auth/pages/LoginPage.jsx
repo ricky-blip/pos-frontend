@@ -1,46 +1,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuthStore from "../../../stores/useAuthStore";
+import { useLoginModel } from "../models/login.model";
 import authBackground from "../../../assets/images/auth_background.png";
 import mainCircleLogo from "../../../assets/images/main_circle_logo.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const login = useAuthStore((s) => s.login);
+  const { loginAction, isLoading, error } = useLoginModel();
+  
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    // Simulate API call with role-based authentication
-    setTimeout(() => {
-      // Demo credentials:
-      // Admin: username = "admin", password = "admin123"
-      // Cashier: username = "cashier", password = "cashier123"
-      if (username === "admin" && password === "admin123") {
-        login({
-          username: "John Doe",
-          role: "admin",
-        });
-        navigate("/admin/dashboard");
-      } else if (username === "cashier" && password === "cashier123") {
-        login({
-          username: "John Doe",
-          role: "cashier",
-        });
-        navigate("/dashboard");
-      } else {
-        setError("Invalid username or password");
-      }
-
-      setIsLoading(false);
-    }, 1000);
+    await loginAction(username, password);
   };
 
   return (
@@ -163,21 +137,24 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-lg py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-70"
+                className="flex w-full items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-70"
                 style={{
                   backgroundColor: "#3B5BDB",
                   fontFamily: "'Roboto', sans-serif",
                 }}
               >
-                {isLoading ? "Loading..." : "Login"}
+                {isLoading ? (
+                  <>
+                    <svg className="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Memuat...
+                  </>
+                ) : (
+                  "Login"
+                )}
               </button>
-
-              {/* Demo Credentials */}
-              <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
-                <p className="mb-1 text-xs font-semibold text-blue-800">Demo Credentials:</p>
-                <p className="text-xs text-blue-700">Admin: admin / admin123</p>
-                <p className="text-xs text-blue-700">Cashier: cashier / cashier123</p>
-              </div>
             </form>
 
             {/* Register link */}

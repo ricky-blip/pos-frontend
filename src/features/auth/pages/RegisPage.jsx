@@ -1,25 +1,23 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useRegisModel } from "../models/regis.model";
 import authBackground from "../../../assets/images/auth_background.png";
 import mainCircleLogo from "../../../assets/images/main_circle_logo.png";
 
 export default function RegisPage() {
   const navigate = useNavigate();
+  const { registerAction, isLoading, error } = useRegisModel();
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate("/login");
-    }, 1000);
+    await registerAction(username, email, password, confirmPassword);
   };
 
   return (
@@ -62,6 +60,11 @@ export default function RegisPage() {
             </p>
 
             <form onSubmit={handleRegister}>
+              {error && (
+                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
               <div className="mb-4">
                 <label
                   htmlFor="username"
@@ -165,13 +168,23 @@ export default function RegisPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-lg py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-70"
+                className="flex w-full items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-70"
                 style={{
                   backgroundColor: "#3B5BDB",
                   fontFamily: "'Roboto', sans-serif",
                 }}
               >
-                {isLoading ? "Loading..." : "Login"}
+                {isLoading ? (
+                  <>
+                    <svg className="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Memuat...
+                  </>
+                ) : (
+                  "Register"
+                )}
               </button>
             </form>
 
