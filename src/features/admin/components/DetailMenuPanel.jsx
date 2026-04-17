@@ -15,8 +15,8 @@ export default function DetailMenuPanel({ menu, onEdit, onDelete }) {
 
   const getCategoryLabel = (category) => {
     const labels = {
-      food: "Food",
-      beverage: "Beverage",
+      foods: "Foods",
+      beverages: "Beverages",
       dessert: "Dessert",
     };
     return labels[category?.toLowerCase()] || category;

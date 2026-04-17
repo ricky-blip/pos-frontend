@@ -1,13 +1,18 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import CategoryTabs from "../components/CategoryTabs";
 import MenuSection from "../components/MenuSection";
 import OrderPanel from "../components/OrderPanel";
 import TransactionSuccessModal from "../components/TransactionSuccessModal";
 import DetailMenuModal from "../components/DetailMenuModal";
-import mockCategories from "../../data/mockCategories";
-import mockMenus from "../../data/mockMenus";
+import { useCashierCatalog } from "../../models/catalog.model";
+import { MenuGridSkeleton } from "../../../shared/components/MenuSkeleton";
 
 export default function CashierDashboardPage() {
+  const { categories, menus, isLoading, error, fetchMenus } = useCashierCatalog();
+  const [searchParams] = useSearchParams();
+  const searchKeyword = searchParams.get("search") || "";
+
   const [activeCategory, setActiveCategory] = useState("all");
   const [orderType, setOrderType] = useState("dine-in");
   const [customerName, setCustomerName] = useState("");
@@ -21,13 +26,7 @@ export default function CashierDashboardPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState(null);
 
-  const filteredMenus = useMemo(() => {
-    if (activeCategory === "all") {
-      return mockMenus;
-    }
-
-    return mockMenus.filter((menu) => menu.category === activeCategory);
-  }, [activeCategory]);
+  const filteredMenus = menus; // Now menus are always filtered from the server
 
   const subtotal = useMemo(
     () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -112,6 +111,16 @@ export default function CashierDashboardPage() {
     setIsArchiveModalOpen(false);
   };
 
+  // Fetch menus when category or search changes
+  useEffect(() => {
+    const selectedCat = categories.find((c) => c.id === activeCategory);
+    fetchMenus(selectedCat?.dbId || "all", searchKeyword);
+  }, [activeCategory, searchKeyword, fetchMenus, categories]);
+
+  const handleCategoryChange = (nextCategory) => {
+    setActiveCategory(nextCategory);
+  };
+
   const handleChangeOrderType = (nextType) => {
     setOrderType(nextType);
     setCustomerName("");
@@ -149,15 +158,25 @@ export default function CashierDashboardPage() {
       <div className="grid min-w-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_390px]">
         <section className="flex min-w-0 flex-col gap-4">
           <CategoryTabs
-            categories={mockCategories}
+            categories={categories}
             activeCategory={activeCategory}
-            onChange={setActiveCategory}
+            onChange={handleCategoryChange}
           />
-          <MenuSection
-            menus={filteredMenus}
-            totalMenus={filteredMenus.length}
-            onSelectMenu={handleSelectMenuForDetail}
-          />
+          {isLoading ? (
+            <div className="flex-1 overflow-y-auto pr-1">
+              <MenuGridSkeleton count={12} gridClass="grid grid-cols-2 lg:grid-cols-3 gap-4" />
+            </div>
+          ) : error ? (
+            <div className="flex flex-1 items-center justify-center rounded-2xl bg-white p-6 shadow-sm text-red-500">
+              <p>{error}</p>
+            </div>
+          ) : (
+            <MenuSection
+              menus={filteredMenus}
+              totalMenus={filteredMenus.length}
+              onSelectMenu={handleSelectMenuForDetail}
+            />
+          )}
         </section>
 
         <OrderPanel

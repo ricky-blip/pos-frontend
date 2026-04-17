@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { useCategoryModel } from "../../shared/models/category.model";
 
 /**
  * AddMenuForm - Form untuk menambah atau mengedit menu
  * Supports image upload, form validation, and submit handling
  */
 export default function AddMenuForm({ menu, onSave, onCancel }) {
+  const { categories, isLoading: isCatsLoading } = useCategoryModel();
+
   const [formData, setFormData] = useState({
     name: "",
-    category: "",
+    categoryId: "",
     price: "",
+    unit: "portion", // Default unit
     description: "",
     image: null,
     imagePreview: null,
@@ -22,8 +26,9 @@ export default function AddMenuForm({ menu, onSave, onCancel }) {
     if (menu) {
       setFormData({
         name: menu.name || "",
-        category: menu.category || "",
+        categoryId: menu.categoryId?.toString() || "",
         price: menu.price?.toString() || "",
+        unit: menu.unit || "portion",
         description: menu.description || "",
         image: null,
         imagePreview: menu.image || null,
@@ -94,10 +99,11 @@ export default function AddMenuForm({ menu, onSave, onCancel }) {
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (!formData.category) newErrors.category = "Category is required";
+    if (!formData.categoryId) newErrors.categoryId = "Category is required";
     if (!formData.price) newErrors.price = "Price is required";
     else if (isNaN(formData.price) || Number(formData.price) <= 0)
       newErrors.price = "Price must be a positive number";
+    if (!formData.unit) newErrors.unit = "Unit is required";
     if (!formData.description.trim())
       newErrors.description = "Description is required";
 
@@ -110,16 +116,11 @@ export default function AddMenuForm({ menu, onSave, onCancel }) {
     if (validate()) {
       onSave({
         ...formData,
+        categoryId: Number(formData.categoryId),
         price: Number(formData.price),
       });
     }
   };
-
-  const categories = [
-    { value: "food", label: "Food" },
-    { value: "beverage", label: "Beverage" },
-    { value: "dessert", label: "Dessert" },
-  ];
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-5 h-full">
@@ -245,22 +246,48 @@ export default function AddMenuForm({ menu, onSave, onCancel }) {
             Category
           </label>
           <select
-            name="category"
-            value={formData.category}
+            name="categoryId"
+            value={formData.categoryId}
             onChange={handleChange}
+            disabled={isCatsLoading}
             className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.category ? "border-red-500" : "border-[#e5e7eb]"
+              errors.categoryId ? "border-red-500" : "border-[#e5e7eb]"
             }`}
           >
-            <option value="">Select category</option>
+            <option value="">{isCatsLoading ? "Memuat Kategori..." : "Select category"}</option>
             {categories.map((cat) => (
-              <option key={cat.value} value={cat.value}>
+              <option key={cat.dbId} value={cat.dbId}>
                 {cat.label}
               </option>
             ))}
           </select>
-          {errors.category && (
-            <p className="text-red-500 text-xs mt-1">{errors.category}</p>
+          {errors.categoryId && (
+            <p className="text-red-500 text-xs mt-1">{errors.categoryId}</p>
+          )}
+        </div>
+
+        {/* Unit */}
+        <div>
+          <label className="block text-sm font-medium text-[#111827] mb-1">
+            Unit
+          </label>
+          <select
+            name="unit"
+            value={formData.unit}
+            onChange={handleChange}
+            className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.unit ? "border-red-500" : "border-[#e5e7eb]"
+            }`}
+          >
+            <option value="portion">Portion</option>
+            <option value="plate">Plate</option>
+            <option value="bowl">Bowl</option>
+            <option value="glass">Glass</option>
+            <option value="cup">Cup</option>
+            <option value="slice">Slice</option>
+          </select>
+          {errors.unit && (
+            <p className="text-red-500 text-xs mt-1">{errors.unit}</p>
           )}
         </div>
 

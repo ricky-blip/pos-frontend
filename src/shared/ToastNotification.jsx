@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import useToastStore from "../stores/useToastStore";
 
 /**
@@ -8,6 +9,15 @@ import useToastStore from "../stores/useToastStore";
 export default function ToastNotification() {
   const toast = useToastStore((s) => s.toast);
   const hideToast = useToastStore((s) => s.hideToast);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        hideToast();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast, hideToast]);
 
   if (!toast) return null;
 

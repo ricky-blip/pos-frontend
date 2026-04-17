@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import MenuCard from "../components/MenuCard";
 import CategoryFilter from "../components/CategoryFilter";
 import AddMenuForm from "../components/AddMenuForm";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import DetailMenuPanel from "../components/DetailMenuPanel";
-import { useMenuAPI } from "../hooks/useMenuAPI";
+import { useMenuAPI } from "../models/menu.model";
+import { useCategoryModel } from "../../shared/models/category.model";
+import { MenuGridSkeleton } from "../../shared/components/MenuSkeleton";
 import useToastStore from "../../../stores/useToastStore";
 
 /**
@@ -24,21 +27,28 @@ export default function CatalogPage() {
   const [menuToDelete, setMenuToDelete] = useState(null);
   const [filteredMenus, setFilteredMenus] = useState([]);
   
+  const [searchParams] = useSearchParams();
+  const searchKeyword = searchParams.get("search") || "";
+  
+  const { categories: backendCategories, isLoading: isCatsLoading } = useCategoryModel();
+  const categories = [{ id: "all", label: "All Menu" }, ...backendCategories];
+
   const { menus, loading, fetchMenus, addMenu, updateMenu, deleteMenu } = useMenuAPI();
   const showToast = useToastStore((s) => s.showToast);
 
-  // Fetch menus when category changes
+  // Fetch menus when category or search changes
   useEffect(() => {
     const loadMenus = async () => {
       try {
-        const result = await fetchMenus(activeCategory);
+        const selectedCat = categories.find((c) => c.id === activeCategory);
+        const result = await fetchMenus(selectedCat?.dbId || "all", searchKeyword);
         setFilteredMenus(result);
       } catch (error) {
         showToast("Failed to load menus", "error");
       }
     };
     loadMenus();
-  }, [activeCategory, fetchMenus, showToast]);
+  }, [activeCategory, searchKeyword, fetchMenus, showToast, categories.length]);
 
   const handleCategoryChange = (category) => {
     setActiveCategory(category);
@@ -140,13 +150,14 @@ export default function CatalogPage() {
         {/* Category Filter */}
         <CategoryFilter
           activeCategory={activeCategory}
+          categories={categories}
           onCategoryChange={handleCategoryChange}
         />
 
         {/* Menu Grid */}
         {loading ? (
-          <div className="flex items-center justify-center flex-1">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="flex-1 overflow-y-auto">
+            <MenuGridSkeleton count={8} />
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto">

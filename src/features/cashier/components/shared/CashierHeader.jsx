@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import useAuthStore from "../../../../stores/useAuthStore";
 
 function SearchIcon() {
@@ -44,7 +45,26 @@ function LogoutIcon() {
  */
 export default function CashierHeader({ onOrderArchive }) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const logout = useAuthStore((s) => s.logout);
+  const user = useAuthStore((s) => s.user);
+
+  const [searchValue, setSearchValue] = useState(searchParams.get("search") || "");
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const newParams = new URLSearchParams(searchParams);
+      if (searchValue) {
+        newParams.set("search", searchValue);
+      } else {
+        newParams.delete("search");
+      }
+      setSearchParams(newParams);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchValue, setSearchParams, searchParams]);
 
   const handleLogout = () => {
     logout();
@@ -63,6 +83,8 @@ export default function CashierHeader({ onOrderArchive }) {
             <input
               type="text"
               placeholder="Enter the keyword here..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
               className="h-10 w-96 rounded-lg border border-[#e5e7eb] bg-white py-2 pl-9 pr-4 text-sm text-[#111827] placeholder-[#9ca3af] focus:border-[#3b5bdb] focus:outline-none focus:ring-1 focus:ring-[#3b5bdb]"
             />
           </div>
@@ -88,8 +110,8 @@ export default function CashierHeader({ onOrderArchive }) {
               className="h-10 w-10 rounded-full object-cover"
             />
             <div>
-              <p className="text-sm font-semibold text-[#111827]">John Doe</p>
-              <p className="text-xs text-[#9ca3af]">Cashier</p>
+              <p className="text-sm font-semibold text-[#111827] capitalize">{user?.username || "John Doe"}</p>
+              <p className="text-xs text-[#9ca3af] capitalize">{user?.role || "Cashier"}</p>
             </div>
             <button
               type="button"

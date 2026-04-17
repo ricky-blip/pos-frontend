@@ -40,6 +40,16 @@ const categoryIcons = {
       <path d="M12 5v2" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
     </>
   ),
+  default: (
+    <path
+      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.5"
+    />
+  ),
 };
 
 export default function CategoryTabs({ categories, activeCategory, onChange }) {
@@ -59,9 +69,9 @@ export default function CategoryTabs({ categories, activeCategory, onChange }) {
                 : "border-[#dde3ee] bg-white text-[#959eaf] hover:border-[#b7c4e4] hover:text-[#4b5565]"
             }`}
           >
-            {categoryIcons[category.id] ? (
+            {categoryIcons[category.id] || categoryIcons.default ? (
               <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                {categoryIcons[category.id]}
+                {categoryIcons[category.id] || categoryIcons.default}
               </svg>
             ) : null}
             <span className="text-base">{category.label}</span>
