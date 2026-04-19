@@ -11,7 +11,7 @@ Aplikasi Point of Sale (POS) yang dibangun dengan React, Vite, dan Tailwind CSS.
 | 👨‍💼 Admin | `admin` | `admin123` | `/admin/dashboard` |
 | 💰 Kasir | `cashier` | `cashier123` | `/dashboard` |
 
-> **Catatan:** Login saat ini masih **simulasi** dan belum terhubung ke API/backend nyata.
+> **Catatan:** Login kini sudah **terkoneksi ke API nyata** (Backend Node.js). Seluruh data menu dan profil ditarik secara dinamis dari database.
 
 ---
 
@@ -627,7 +627,10 @@ export default function AuthLayout() {
 
 **File:** `src/stores/useAuthStore.jsx` & `src/stores/useToastStore.jsx`
 
-Aplikasi ini menggunakan **Zustand** (library state management yang ringan dan cepat) untuk menyimpan data global (seperti status login user dan notifikasi toast) yang bisa diakses dari mana pun. Penggunaan Zustand menghilangkan limitasi Provider wrapper pada root aplikasi.
+Aplikasi ini menggunakan **Zustand** (library state management yang ringan dan cepat) untuk menyimpan data global.
+
+- **useAuthStore**: Menyimpan profil user dan **JWT Token**. Token ini otomatis dikirim di header `Authorization` oleh `menu.service.js` dan `category.service.js` untuk setiap request ke backend.
+- **useToastStore**: Mengatur notifikasi toast yang muncul di layar.
 
 ```jsx
 // Menggunakannya di komponen
