@@ -14,6 +14,7 @@ export default function DetailMenuPanel({ menu, onEdit, onDelete }) {
   };
 
   const getCategoryLabel = (category) => {
+    if (typeof category === 'object') return category.name;
     const labels = {
       foods: "Foods",
       beverages: "Beverages",
@@ -103,13 +104,42 @@ export default function DetailMenuPanel({ menu, onEdit, onDelete }) {
           </div>
         </div>
 
-        {/* Price */}
+        {/* Price & Stock Grid */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          {/* Price */}
+          <div>
+            <label className="block text-sm font-medium text-[#111827] mb-1">
+              Price
+            </label>
+            <div className="px-3 py-2 border border-[#e5e7eb] rounded-lg text-sm font-semibold text-blue-600">
+              {formatPrice(menu.price)}
+            </div>
+          </div>
+          {/* Stock */}
+          <div>
+            <label className="block text-sm font-medium text-[#111827] mb-1">
+              Remaining Stock
+            </label>
+            <div className={`px-3 py-2 border rounded-lg text-sm font-bold ${
+              menu.stock < 5 ? "border-red-200 bg-red-50 text-red-600" : "border-[#e5e7eb] text-[#111827]"
+            }`}>
+              {menu.stock} {menu.unit || "item"}
+            </div>
+          </div>
+        </div>
+
+        {/* Availability */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-[#111827] mb-1">
-            Price
+            Status
           </label>
-          <div className="px-3 py-2 border border-[#e5e7eb] rounded-lg text-sm text-[#111827]">
-            {formatPrice(menu.price)}
+          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
+            menu.is_available 
+              ? "bg-green-100 text-green-700" 
+              : "bg-gray-100 text-gray-700"
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${menu.is_available ? "bg-green-500" : "bg-gray-400"}`}></span>
+            {menu.is_available ? "Available in Cashier" : "Hidden from Cashier"}
           </div>
         </div>
 

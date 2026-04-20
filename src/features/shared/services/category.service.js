@@ -4,7 +4,7 @@ import useAuthStore from "../../../stores/useAuthStore";
 export const categoryService = {
   getAll: async () => {
     try {
-      const token = useAuthStore.getState().user?.token;
+      const token = useAuthStore.getState().token;
       const response = await fetch(`${API_BASE_URL}/categories`, {
         headers: {
           'Authorization': `Bearer ${token}`

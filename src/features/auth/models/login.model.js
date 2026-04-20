@@ -17,7 +17,7 @@ export const useLoginModel = () => {
       const { user, access_token } = await loginService.login(username, password);
       
       // Simpan credentials di format global state
-      setStoreUser({ ...user, token: access_token });
+      setStoreUser(user, access_token);
 
       // Redirect sesuai role
       if (user.role === "admin") {

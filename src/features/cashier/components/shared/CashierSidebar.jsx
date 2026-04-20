@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import useAuthStore from "../../../../stores/useAuthStore";
 
 function ArrowRightIcon() {
   return (
@@ -106,6 +107,8 @@ function LogoutIcon() {
  */
 export default function CashierSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const logout = useAuthStore((s) => s.logout);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getActiveItem = () => {
@@ -138,6 +141,13 @@ export default function CashierSidebar() {
     },
   ];
 
+  const handleLogout = () => {
+    if (window.confirm("Apakah Anda yakin ingin keluar?")) {
+      logout();
+      navigate("/");
+    }
+  };
+
   const toggleSidebar = () => {
     setIsExpanded(!isExpanded);
   };
@@ -150,7 +160,6 @@ export default function CashierSidebar() {
     >
       {/* Logo Section */}
       <div className="flex flex-col items-center border-b border-[#e5e7eb] px-4 py-4">
-        {/* Logo + Title + Toggle (when expanded) */}
         {isExpanded ? (
           <div className="flex w-full items-center justify-between">
             <div className="flex items-center gap-3">
@@ -171,15 +180,10 @@ export default function CashierSidebar() {
           </div>
         ) : (
           <>
-            {/* Logo only (when collapsed) */}
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#3B5BDB] to-[#5B7BDB]">
               <span className="text-xl font-bold text-white">P</span>
             </div>
-            
-            {/* Separator */}
             <div className="mt-3 w-full border-t border-[#e5e7eb]"></div>
-            
-            {/* Toggle Arrow Button (when collapsed) */}
             <button
               type="button"
               onClick={toggleSidebar}
@@ -206,17 +210,12 @@ export default function CashierSidebar() {
                   : "text-[#9ca3af] hover:bg-[#f9fafb] hover:text-[#3b5bdb]"
               }`}
             >
-              {/* Active indicator - right border */}
               {isActive && (
                 <div className="absolute right-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-l bg-[#3b5bdb]" />
               )}
-              
-              {/* Icon */}
               <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
                 {item.icon(isActive)}
               </div>
-              
-              {/* Label - only visible when expanded */}
               {isExpanded && (
                 <span className="text-sm font-medium">{item.label}</span>
               )}
@@ -224,6 +223,21 @@ export default function CashierSidebar() {
           );
         })}
       </nav>
+
+      {/* Logout Button */}
+      <div className="mt-auto border-t border-[#e5e7eb] p-3">
+        <button
+          onClick={handleLogout}
+          className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-red-500 transition-all hover:bg-red-50`}
+        >
+          <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
+            <LogoutIcon />
+          </div>
+          {isExpanded && (
+            <span className="text-sm font-medium">Logout</span>
+          )}
+        </button>
+      </div>
     </aside>
   );
 }

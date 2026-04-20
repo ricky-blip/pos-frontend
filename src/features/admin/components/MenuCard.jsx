@@ -14,11 +14,14 @@ export default function MenuCard({ menu, isSelected, onSelect }) {
   };
 
   const getCategoryBadgeStyle = (category) => {
+    const categoryName = typeof category === 'object' ? category.name : category;
     const baseStyle =
-      "absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-semibold text-white";
-    switch (category?.toLowerCase()) {
+      "absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-semibold text-white z-10 shadow-sm";
+    switch (categoryName?.toLowerCase()) {
+      case "foods":
       case "food":
         return `${baseStyle} bg-blue-500`;
+      case "beverages":
       case "beverage":
         return `${baseStyle} bg-green-500`;
       case "dessert":
@@ -27,6 +30,10 @@ export default function MenuCard({ menu, isSelected, onSelect }) {
         return `${baseStyle} bg-gray-500`;
     }
   };
+
+  const categoryName = typeof menu.category === 'object' ? menu.category.name : menu.category;
+  const isOutOfStock = Number(menu.stock || 0) <= 0;
+  const isLowStock = Number(menu.stock || 0) < 5 && !isOutOfStock;
 
   return (
     <div
@@ -40,10 +47,28 @@ export default function MenuCard({ menu, isSelected, onSelect }) {
         <img
           src={menu.image || "/placeholder-food.jpg"}
           alt={menu.name}
-          className="w-full h-40 object-cover"
+          className={`w-full h-40 object-cover transition-opacity ${!menu.is_available || isOutOfStock ? "opacity-40 grayscale" : ""}`}
         />
         {/* Category Badge */}
-        <span className={getCategoryBadgeStyle(menu.category)}>{menu.category}</span>
+        <span className={getCategoryBadgeStyle(menu.category)}>{categoryName}</span>
+        
+        {/* Stock Badge Overlay */}
+        <div className="absolute bottom-2 left-2 flex gap-1">
+          {isOutOfStock ? (
+            <span className="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase shadow-sm">
+              Habis
+            </span>
+          ) : isLowStock ? (
+            <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm">
+              Sisa {menu.stock}
+            </span>
+          ) : null}
+          {!menu.is_available && (
+            <span className="bg-gray-700 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase shadow-sm">
+              Hidden
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Content */}
@@ -59,7 +84,7 @@ export default function MenuCard({ menu, isSelected, onSelect }) {
             <span className="text-blue-600 font-bold text-sm">
               {formatPrice(menu.price)}
             </span>
-            <span className="text-xs text-[#6b7280]">/portion</span>
+            <span className="text-[10px] text-[#6b7280] ml-1">/{menu.unit || "portion"}</span>
           </div>
           <div className="text-[#6b7280]">
             <svg

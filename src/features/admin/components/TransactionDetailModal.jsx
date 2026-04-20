@@ -58,67 +58,58 @@ export default function TransactionDetailModal({ isOpen, onClose, transaction })
             {/* Order Info */}
             <div className="space-y-1 mb-4">
               <p className="text-xs text-[#6b7280]">
-                <span className="font-medium">No Order</span> {transaction.orderNumber}
+                <span className="font-medium text-gray-900 border-b border-gray-100 pb-1 flex justify-between">
+                  <span>No Invoice</span> 
+                  <span className="text-blue-600">#{transaction.invoiceNumber}</span>
+                </span>
               </p>
-              <p className="text-xs text-[#6b7280]">
-                <span className="font-medium">Order Date:</span> {formatDate(transaction.orderDate)}
-              </p>
-              <p className="text-xs text-[#6b7280]">
-                <span className="font-medium">Customer Name:</span> {transaction.customerName}
-              </p>
-              <p className="text-xs text-[#6b7280] font-semibold">
-                {transaction.orderType}
-              </p>
+              <div className="pt-2 space-y-1">
+                <p className="text-xs text-[#6b7280]">
+                  <span className="font-medium">Date:</span> {formatDate(transaction.createdAt)}
+                </p>
+                <p className="text-xs text-[#6b7280]">
+                  <span className="font-medium">Customer:</span> {transaction.customerName || "Guest"}
+                </p>
+                <p className="text-xs text-[#6b7280]">
+                  <span className="font-medium">Payment:</span> {transaction.paymentMethod?.toUpperCase()}
+                </p>
+              </div>
             </div>
 
             {/* Items */}
-            <div className="space-y-3">
+            <div className="space-y-3 py-3 border-t border-b border-gray-100 border-dashed">
               {transaction.items?.map((item, index) => (
                 <div key={index}>
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-[#111827]">{item.name}</p>
+                      <p className="text-sm font-semibold text-[#111827]">{item.menu?.name || "Unknown Item"}</p>
                       <p className="text-xs text-[#6b7280]">
-                        {item.quantity} x {formatPrice(item.price)}
+                        {item.quantity} x {formatPrice(item.priceAtTransaction)}
                       </p>
                     </div>
                     <p className="text-sm font-semibold text-[#111827]">
-                      {formatPrice(item.quantity * item.price)}
+                      {formatPrice(item.subtotal)}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Subtotal */}
-            <div className="border-t border-dashed border-[#d1d5db] mt-4 pt-4 space-y-2">
+            {/* Totals */}
+            <div className="mt-4 space-y-2">
               <div className="flex justify-between text-xs">
                 <span className="text-[#6b7280]">Sub Total</span>
-                <span className="text-[#111827]">{formatPrice(transaction.subTotal)}</span>
+                <span className="text-[#111827]">{formatPrice(transaction.totalOriginal)}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-[#6b7280]">Tax</span>
-                <span className="text-[#111827]">{formatPrice(transaction.tax)}</span>
+                <span className="text-[#6b7280]">Tax (PPN 11%)</span>
+                <span className="text-[#111827]">{formatPrice(transaction.totalTax)}</span>
               </div>
-            </div>
-
-            {/* Total */}
-            <div className="border-t border-dashed border-[#d1d5db] mt-4 pt-4 flex justify-between">
-              <span className="text-sm font-semibold text-[#111827]">Total</span>
-              <span className="text-xl font-bold text-[#111827]">
-                {formatPrice(transaction.total)}
-              </span>
-            </div>
-
-            {/* Payment Info */}
-            <div className="mt-4 space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-[#6b7280]">Diterima</span>
-                <span className="text-[#111827]">{formatPrice(transaction.paid)}</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-[#6b7280]">Kembalian</span>
-                <span className="text-[#111827]">{formatPrice(transaction.change)}</span>
+              <div className="flex justify-between pt-2 border-t border-gray-100">
+                <span className="text-sm font-bold text-[#111827]">Total</span>
+                <span className="text-xl font-bold text-blue-600">
+                  {formatPrice(transaction.totalFinal)}
+                </span>
               </div>
             </div>
           </div>
@@ -132,22 +123,21 @@ TransactionDetailModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   transaction: PropTypes.shape({
-    orderNumber: PropTypes.string,
-    orderDate: PropTypes.string,
+    invoiceNumber: PropTypes.string,
+    createdAt: PropTypes.string,
     customerName: PropTypes.string,
-    orderType: PropTypes.string,
+    paymentMethod: PropTypes.string,
     items: PropTypes.arrayOf(
       PropTypes.shape({
-        name: PropTypes.string,
+        menu: PropTypes.object,
         quantity: PropTypes.number,
-        price: PropTypes.number,
+        priceAtTransaction: PropTypes.number,
+        subtotal: PropTypes.number,
       })
     ),
-    subTotal: PropTypes.number,
-    tax: PropTypes.number,
-    total: PropTypes.number,
-    paid: PropTypes.number,
-    change: PropTypes.number,
+    totalOriginal: PropTypes.number,
+    totalTax: PropTypes.number,
+    totalFinal: PropTypes.number,
   }),
 };
 

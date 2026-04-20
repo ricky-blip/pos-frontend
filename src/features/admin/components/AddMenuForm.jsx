@@ -15,6 +15,8 @@ export default function AddMenuForm({ menu, onSave, onCancel }) {
     price: "",
     unit: "portion", // Default unit
     description: "",
+    stock: "0",
+    is_available: true,
     image: null,
     imagePreview: null,
   });
@@ -30,6 +32,8 @@ export default function AddMenuForm({ menu, onSave, onCancel }) {
         price: menu.price?.toString() || "",
         unit: menu.unit || "portion",
         description: menu.description || "",
+        stock: menu.stock?.toString() || "0",
+        is_available: menu.is_available ?? true,
         image: null,
         imagePreview: menu.image || null,
       });
@@ -106,6 +110,8 @@ export default function AddMenuForm({ menu, onSave, onCancel }) {
     if (!formData.unit) newErrors.unit = "Unit is required";
     if (!formData.description.trim())
       newErrors.description = "Description is required";
+    if (formData.stock === "" || isNaN(formData.stock) || Number(formData.stock) < 0)
+      newErrors.stock = "Stock must be a non-negative number";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -118,6 +124,8 @@ export default function AddMenuForm({ menu, onSave, onCancel }) {
         ...formData,
         categoryId: Number(formData.categoryId),
         price: Number(formData.price),
+        stock: Number(formData.stock),
+        is_available: formData.is_available,
       });
     }
   };
@@ -291,24 +299,47 @@ export default function AddMenuForm({ menu, onSave, onCancel }) {
           )}
         </div>
 
-        {/* Price */}
-        <div>
-          <label className="block text-sm font-medium text-[#111827] mb-1">
-            Price
-          </label>
-          <input
-            type="number"
-            name="price"
-            value={formData.price}
-            onChange={handleChange}
-            placeholder="Enter price here..."
-            className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.price ? "border-red-500" : "border-[#e5e7eb]"
-            }`}
-          />
-          {errors.price && (
-            <p className="text-red-500 text-xs mt-1">{errors.price}</p>
-          )}
+        {/* Price & Stock Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Price */}
+          <div>
+            <label className="block text-sm font-medium text-[#111827] mb-1">
+              Price
+            </label>
+            <input
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              placeholder="Enter price..."
+              className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.price ? "border-red-500" : "border-[#e5e7eb]"
+              }`}
+            />
+            {errors.price && (
+              <p className="text-red-500 text-xs mt-1">{errors.price}</p>
+            )}
+          </div>
+
+          {/* Stock */}
+          <div>
+            <label className="block text-sm font-medium text-[#111827] mb-1">
+              Initial Stock
+            </label>
+            <input
+              type="number"
+              name="stock"
+              value={formData.stock}
+              onChange={handleChange}
+              placeholder="0"
+              className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.stock ? "border-red-500" : "border-[#e5e7eb]"
+              }`}
+            />
+            {errors.stock && (
+              <p className="text-red-500 text-xs mt-1">{errors.stock}</p>
+            )}
+          </div>
         </div>
 
         {/* Description */}
@@ -329,6 +360,27 @@ export default function AddMenuForm({ menu, onSave, onCancel }) {
           {errors.description && (
             <p className="text-red-500 text-xs mt-1">{errors.description}</p>
           )}
+        </div>
+
+        {/* Availability Toggle */}
+        <div className="flex items-center justify-between py-2 border-t border-b border-[#f3f4f6]">
+          <div>
+            <p className="text-sm font-semibold text-[#111827]">Availability</p>
+            <p className="text-xs text-[#6b7280]">Toggle to show/hide in cashier</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFormData(prev => ({ ...prev, is_available: !prev.is_available }))}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+              formData.is_available ? "bg-blue-600" : "bg-[#d1d5db]"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                formData.is_available ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
         </div>
 
         {/* Submit Button */}

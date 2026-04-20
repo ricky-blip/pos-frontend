@@ -18,7 +18,7 @@ export const menuService = {
       // Small artificial delay to ensure skeleton is visible (especially on localhost)
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      const token = useAuthStore.getState().user?.token;
+      const token = useAuthStore.getState().token;
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -45,7 +45,7 @@ export const menuService = {
 
   create: async (menuData) => {
     try {
-      const token = useAuthStore.getState().user?.token;
+      const token = useAuthStore.getState().token;
       const response = await fetch(`${API_BASE_URL}/menus`, {
         method: 'POST',
         headers: {
@@ -65,7 +65,7 @@ export const menuService = {
 
   update: async (id, menuData) => {
     try {
-      const token = useAuthStore.getState().user?.token;
+      const token = useAuthStore.getState().token;
       const response = await fetch(`${API_BASE_URL}/menus/${id}`, {
         method: 'PUT',
         headers: {
@@ -85,7 +85,7 @@ export const menuService = {
 
   delete: async (id) => {
     try {
-      const token = useAuthStore.getState().user?.token;
+      const token = useAuthStore.getState().token;
       const response = await fetch(`${API_BASE_URL}/menus/${id}`, {
         method: 'DELETE',
         headers: {

@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { LoginPage, RegisPage, ResetPassPage } from "./features/auth"
 import { CashierDashboardPage, SettingsPage as CashierSettingsPage, SalesReportPage as CashierSalesReportPage } from "./features/cashier"
-import { AdminDashboardPage, SalesReportPage as AdminSalesReportPage, MenuManagementPage, SettingsPage as AdminSettingsPage } from "./features/admin"
+import { AdminDashboardPage, SalesReportPage as AdminSalesReportPage, MenuManagementPage, ActivityLogsPage, SettingsPage as AdminSettingsPage, UserManagementPage } from "./features/admin"
 import SplashScreen from "./features/splashscreen/SplashScreen"
 import AuthLayout from "./shared/AuthLayout"
 import { CashierLayout } from "./features/cashier/layouts"
@@ -38,6 +38,8 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
             <Route path="/admin/catalog" element={<MenuManagementPage />} />
             <Route path="/admin/sales-report" element={<AdminSalesReportPage />} />
+            <Route path="/admin/users" element={<UserManagementPage />} />
+            <Route path="/admin/logs" element={<ActivityLogsPage />} />
             <Route path="/admin/settings" element={<AdminSettingsPage />} />
           </Route>
         </Route>

@@ -7,6 +7,8 @@ import TransactionSuccessModal from "../components/TransactionSuccessModal";
 import DetailMenuModal from "../components/DetailMenuModal";
 import { useCashierCatalog } from "../../models/catalog.model";
 import { MenuGridSkeleton } from "../../../shared/components/MenuSkeleton";
+import transactionService from "../../../shared/services/transaction.service";
+import useToastStore from "../../../../stores/useToastStore";
 
 export default function CashierDashboardPage() {
   const { categories, menus, isLoading, error, fetchMenus } = useCashierCatalog();
@@ -21,6 +23,8 @@ export default function CashierDashboardPage() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [itemNotes, setItemNotes] = useState({});
+  const [isProcessing, setIsProcessing] = useState(false);
+  const showToast = useToastStore((s) => s.showToast);
   
   // State untuk Detail Menu Modal
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -32,7 +36,13 @@ export default function CashierDashboardPage() {
     () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [cartItems]
   );
-  const tax = cartItems.length > 0 ? 5000 : 0;
+  
+  // Align with Backend PPN 11%
+  const tax = useMemo(
+    () => Math.round(subtotal * 0.11),
+    [subtotal]
+  );
+  
   const total = subtotal + tax;
 
   const handleSelectMenuForDetail = (menu) => {
@@ -127,20 +137,42 @@ export default function CashierDashboardPage() {
     setTableNumber("");
   };
 
-  const handlePay = () => {
+  const handlePay = async () => {
     if (cartItems.length === 0) {
+      showToast("Keranjang masih kosong", "error");
       return;
     }
 
-    if (total >= 85000 && Number(amountPaid || 0) < total) {
+    // Basic validation for payment amount if over a certain threshold or e-wallet
+    // (Optional logic from previous state preserved but simplified)
+    if (amountPaid && Number(amountPaid) < total) {
+      showToast("Jumlah bayar kurang", "error");
       return;
     }
 
-    if (total < 85000) {
-      setAmountPaid(String(50000));
-    }
+    try {
+      setIsProcessing(true);
+      
+      const transactionData = {
+        items: cartItems.map(item => ({
+          menuId: item.id,
+          quantity: item.quantity,
+          note: item.note || ""
+        })),
+        paymentMethod: amountPaid ? "cash" : "e-wallet", // Defaulting based on presence of amountPaid
+        customerName: customerName || "Guest",
+        totalDiscount: 0 // Placeholder for now
+      };
 
-    setIsSuccessModalOpen(true);
+      await transactionService.createTransaction(transactionData);
+      
+      showToast("Transaksi Berhasil!", "success");
+      setIsSuccessModalOpen(true);
+    } catch (err) {
+      showToast(err.message || "Gagal memproses transaksi", "error");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleCloseSuccessModal = () => {
@@ -197,6 +229,7 @@ export default function CashierDashboardPage() {
           onRemoveItem={handleRemoveItem}
           onNoteChange={handleNoteChange}
           onPay={handlePay}
+          isProcessing={isProcessing}
         />
       </div>
 
