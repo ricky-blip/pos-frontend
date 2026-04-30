@@ -82,6 +82,7 @@ sequenceDiagram
     Repo-->>BService: User Object (with Hash)
     
     BService->>BService: Bcrypt.compare(pass, hash)
+    BService->>Repo: INSERT INTO activity_logs (LOGIN event)
     BService->>BService: Sign JWT Token
     
     BService-->>Ctrl: User & Token
@@ -160,7 +161,82 @@ sequenceDiagram
 
 ---
 
-## 5. Sales Reporting & Analytics
+## 5. Stock Adjustment (Inventory Audit)
+Alur penyesuaian stok manual dengan audit trail.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin
+    participant UI as StockAdjustmentModal
+    participant Service as MenuService
+    participant Route as MenuRoute (POST)
+    participant Ctrl as MenuController
+    participant BService as MenuService (Backend)
+    participant Repo as StockLogRepository
+
+    Admin->>UI: Input Jumlah Penyesuaian & Alasan
+    UI->>Service: updateStock(menuId, data)
+    Service->>Route: POST /api/menus/:id/stock
+    
+    Note over Route: Auth & Role Admin Check
+    Route->>Ctrl: adjustStock()
+    Ctrl->>BService: processAdjustment(id, payload)
+    
+    BService->>Repo: INSERT INTO stock_logs (menuId, userId, type, qty, reason)
+    BService->>Repo: UPDATE menus SET stock = newStock
+    
+    Repo-->>Ctrl: Success
+    Ctrl-->>UI: 200 OK (Stok Diperbarui)
+    UI-->>Admin: Toast: Stok berhasil disesuaikan
+```
+
+---
+
+## 6. Shift Management (Cashier Accountability)
+Proses buka dan tutup kasir.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Kasir
+    participant UI as CashierDashboard
+    participant Modal as ShiftModal
+    participant Service as ShiftService
+    participant Route as ShiftRoute
+    participant BService as ShiftService (Backend)
+    participant DB as Database
+
+    Kasir->>UI: Buka Dashboard
+    UI->>Service: getActiveShift()
+    Service->>Route: GET /api/shifts/active
+    Route-->>UI: 404 Not Found (No active shift)
+    
+    UI->>Modal: Show OpenShiftModal
+    Kasir->>Modal: Input Saldo Awal (Starting Cash)
+    Modal->>Service: startShift(amount)
+    Service->>Route: POST /api/shifts/start
+    Route->>BService: createShift(userId, startingCash)
+    BService->>DB: INSERT INTO shifts (status: OPEN)
+    DB-->>UI: 201 Created (Shift Started)
+    
+    Note over Kasir, DB: Transaksi Berjalan...
+    
+    Kasir->>UI: Klik Tutup Shift
+    UI->>Modal: Show EndShiftModal
+    Kasir->>Modal: Input Saldo Akhir Fisik
+    Modal->>Service: endShift(actualCash, notes)
+    Service->>Route: POST /api/shifts/end
+    
+    BService->>DB: Calculate expectedEndingCash (Start + Total Cash Sales)
+    BService->>DB: UPDATE shifts (status: CLOSED, actualEndingCash)
+    DB-->>UI: 200 OK (Shift Ended)
+    UI->>UI: navigate('/dashboard') / resetState()
+```
+
+---
+
+## 7. Sales Reporting & Export PDF
 Agregasi data untuk kebutuhan laporan.
 
 ```mermaid
@@ -174,19 +250,18 @@ sequenceDiagram
     participant BService as ReportService (Backend)
     participant Repo as TransactionRepository
 
-    Admin->>UI: Pilih Rentang Tanggal
-    UI->>Service: getReport(startDate, endDate)
-    Service->>Route: GET /api/reports/sales
-    Route->>Ctrl: getSalesReport()
-    Ctrl->>BService: aggregateSalesData(range)
+    Admin->>UI: Klik "Export PDF"
+    UI->>Service: exportPdf(filters)
+    Service->>Route: GET /api/reports/export/pdf
+    Route->>Ctrl: exportPdf()
+    Ctrl->>BService: generatePdfBuffer(filters)
     
-    BService->>Repo: findAllTransactionsInDateRange()
-    Repo-->>BService: Transactions Collection
+    BService->>Repo: fetchSalesData(filters)
+    BService->>BService: Create PDF with pdfkit
     
-    BService->>BService: Calculate Revenue, Tax, & Profit
-    BService-->>Ctrl: Prepared Report Data
-    Ctrl-->>UI: Visual Data Object
-    UI-->>Admin: Tampilkan Grafik & Tabel
+    BService-->>Ctrl: PDF Buffer
+    Ctrl-->>UI: Binary Stream (Content-Type: application/pdf)
+    UI-->>Admin: Browser Download Triggered
 ```
 
 ---

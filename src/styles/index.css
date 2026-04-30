@@ -51,3 +51,25 @@
 .animate-scale-in {
   animation: scale-in 0.2s ease-out;
 }
+
+/* Print Styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-receipt, .print-receipt * {
+    visibility: visible;
+  }
+  .print-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  /* Hide print button in print view */
+  .no-print {
+    display: none !important;
+  }
+}

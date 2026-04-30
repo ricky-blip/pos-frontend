@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
  * DetailMenuPanel - Panel untuk menampilkan detail menu
  * Menampilkan informasi menu dengan tombol edit dan delete di header
  */
-export default function DetailMenuPanel({ menu, onEdit, onDelete }) {
+export default function DetailMenuPanel({ menu, onEdit, onDelete, onAdjustStock }) {
   const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -120,10 +120,19 @@ export default function DetailMenuPanel({ menu, onEdit, onDelete }) {
             <label className="block text-sm font-medium text-[#111827] mb-1">
               Remaining Stock
             </label>
-            <div className={`px-3 py-2 border rounded-lg text-sm font-bold ${
+            <div className={`px-3 py-2 border rounded-lg text-sm font-bold flex items-center justify-between ${
               menu.stock < 5 ? "border-red-200 bg-red-50 text-red-600" : "border-[#e5e7eb] text-[#111827]"
             }`}>
-              {menu.stock} {menu.unit || "item"}
+              <span>{menu.stock} {menu.unit || "item"}</span>
+              <button 
+                onClick={onAdjustStock}
+                className="p-1 hover:bg-gray-100 rounded text-blue-600"
+                title="Sesuaikan Stok"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>

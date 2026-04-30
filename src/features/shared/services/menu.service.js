@@ -99,5 +99,56 @@ export const menuService = {
       console.error("[MenuService] DELETE Error:", error);
       throw error;
     }
+  },
+
+  adjustStock: async (id, payload) => {
+    try {
+      const token = useAuthStore.getState().token;
+      const response = await fetch(`${API_BASE_URL}/menus/${id}/adjust`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.meta?.message || "Failed to adjust stock");
+      return data.data;
+    } catch (error) {
+      console.error("[MenuService] Adjust Stock Error:", error);
+      throw error;
+    }
+  },
+
+  getLowStock: async (threshold = 5) => {
+    try {
+      const token = useAuthStore.getState().token;
+      const response = await fetch(`${API_BASE_URL}/menus/low-stock?threshold=${threshold}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.meta?.message || "Failed to fetch low stock");
+      return data.data;
+    } catch (error) {
+      console.error("[MenuService] Low Stock Error:", error);
+      throw error;
+    }
+  },
+
+  getLogs: async (id = null) => {
+    try {
+      const token = useAuthStore.getState().token;
+      const url = id ? `${API_BASE_URL}/menus/${id}/logs` : `${API_BASE_URL}/menus/logs`;
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.meta?.message || "Failed to fetch logs");
+      return data.data;
+    } catch (error) {
+      console.error("[MenuService] Get Logs Error:", error);
+      throw error;
+    }
   }
 };

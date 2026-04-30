@@ -3,6 +3,7 @@ import StatCard from "../components/StatCard";
 import CategoryPopup from "../components/CategoryPopup";
 import ReportSummaryCards from "../../shared/components/ReportSummaryCards";
 import DashboardChart from "../components/DashboardChart";
+import LowStockWidget from "../../shared/components/LowStockWidget";
 import { reportService } from "../../shared/services/report.service";
 import useToastStore from "../../../stores/useToastStore";
 
@@ -21,6 +22,9 @@ export default function AdminDashboardPage() {
   const [activeCategory, setActiveCategory] = useState(null);
   const [categoryItems, setCategoryItems] = useState([]);
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
+  
+  const [predictions, setPredictions] = useState([]);
+  const [isPredictionLoading, setIsPredictionLoading] = useState(false);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -34,9 +38,22 @@ export default function AdminDashboardPage() {
     }
   }, [showToast]);
 
+  const fetchPredictions = useCallback(async () => {
+    try {
+      setIsPredictionLoading(true);
+      const data = await reportService.getStockPredictions();
+      setPredictions(data);
+    } catch (error) {
+      console.error("Failed to fetch predictions", error);
+    } finally {
+      setIsPredictionLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchDashboard();
-  }, [fetchDashboard]);
+    fetchPredictions();
+  }, [fetchDashboard, fetchPredictions]);
 
   const handleCategoryClick = async (title, categoryId) => {
     try {
@@ -147,6 +164,61 @@ export default function AdminDashboardPage() {
 
         <div className="mt-4">
           <DashboardChart data={dashboardData.trend} isLoading={isLoading} />
+        </div>
+      </div>
+
+      <div className="mt-8">
+         <LowStockWidget />
+      </div>
+
+      {/* Stock Prediction Section */}
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="rounded-2xl border border-[#e5e7eb] bg-white p-6 shadow-sm">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-[#111827]">Prediksi Stok Minggu Depan</h2>
+            <p className="text-sm text-gray-400 mt-1">Estimasi berdasarkan rata-rata penjualan 7 hari terakhir</p>
+          </div>
+
+          <div className="space-y-4">
+            {isPredictionLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-16 bg-gray-50 animate-pulse rounded-xl"></div>
+              ))
+            ) : predictions.length > 0 ? (
+              predictions.slice(0, 5).map((p) => (
+                <div key={p.menuId} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div>
+                    <h3 className="font-bold text-gray-900">{p.name}</h3>
+                    <p className="text-xs text-gray-500">Stok saat ini: {p.currentStock}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-blue-600">Prediksi: {p.predictedRequirement} unit</p>
+                    <p className={`text-[10px] font-bold uppercase tracking-wider ${p.recommendation.includes('Restock') ? 'text-red-500' : 'text-green-500'}`}>
+                      {p.recommendation}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center py-10 text-gray-400">Belum ada data penjualan yang cukup untuk prediksi.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Tips / Info Card */}
+        <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-8 text-white shadow-lg shadow-blue-200">
+           <h2 className="text-2xl font-bold mb-4">Tips Operasional 💡</h2>
+           <div className="space-y-4">
+              <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/10">
+                 <p className="text-sm">Gunakan fitur <b>Export PDF</b> di halaman Laporan untuk rekap harian yang lebih detail.</p>
+              </div>
+              <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/10">
+                 <p className="text-sm">Segera siapkan uang kembalian sebelum <b>Membuka Shift</b> kasir untuk memperlancar transaksi.</p>
+              </div>
+              <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/10">
+                 <p className="text-sm">Pantau item dengan label <span className="text-red-300 font-bold">Restock</span> di panel prediksi agar tidak kehabisan stok saat jam sibuk.</p>
+              </div>
+           </div>
         </div>
       </div>
 

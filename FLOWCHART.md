@@ -23,12 +23,19 @@ graph TD
         API_Login -- Invalid --> ErrorToast((Toast: Login Gagal))
         ErrorToast --> LoginPage
         API_Login -- Valid --> SaveAuth[Zustand: useAuthStore.setToken & setUser]
-        SaveAuth --> Dashboard
+        SaveAuth --> ActivityLogAuth[Backend: Record ActivityLog - LOGIN]
+        ActivityLogAuth --> Dashboard
     end
 
     %% 2. CASHIER FLOW
     subgraph Cashier_Dashboard [2. Cashier Operations]
-        Dashboard --> InitCashier[Fetch Menu & Kategori]
+        Dashboard --> ShiftCheck{Check Active Shift}
+        ShiftCheck -- Tidak Ada --> OpenShiftModal[Modal: Buka Shift - Input Saldo Awal]
+        OpenShiftModal --> API_StartShift[POST /api/shifts/start]
+        API_StartShift --> InitCashier
+        ShiftCheck -- Ada --> InitCashier
+        
+        InitCashier[Fetch Menu & Kategori]
         Note over InitCashier: Termasuk data stok asli dari DB
         InitCashier --> MenuSearch{Cari/Filter Produk?}
         MenuSearch -- Ya --> DisplayFilter[Tampilkan Berdasarkan Kategori/ID]
@@ -36,6 +43,11 @@ graph TD
         
         DisplayAll --> CartAction[Aksi: Cart Management]
         DisplayFilter --> CartAction
+        
+        CartAction --> EndShift[Aksi: Tutup Shift]
+        EndShift --> EndShiftModal[Modal: Input Saldo Akhir Fisik]
+        EndShiftModal --> API_EndShift[POST /api/shifts/end]
+        API_EndShift --> Dashboard
     end
 
     %% 3. CART MANAGEMENT
@@ -77,19 +89,29 @@ graph TD
     subgraph Backoffice [6. Backoffice & Reports]
         Admin_Section --> MenuMgmt[Aksi: Kelola Menu]
         Admin_Section --> SalesReport[Aksi: Laporan Penjualan]
+        Admin_Section --> Inventory[Aksi: Kelola Stok]
         
         MenuMgmt --> CRUD[Create/Update/Delete Menu]
         CRUD --> API_Menu[REST: /api/menus]
         
-        SalesReport --> FilterReport[Filter: Tanggal/Kasir]
-        FilterReport --> Export[Aksi: Download Excel/PDF - Backlog]
+        Inventory --> StockAdj[Modal: Stock Adjustment]
+        StockAdj --> API_Adj[POST /api/menus/:id/stock]
+        API_Adj --> ActivityLog[Backend: Record StockLog]
+        
+        SalesReport --> FilterReport[Filter: Tanggal/Kasir/Kategori]
+        FilterReport --> ExportPDF[Aksi: Download PDF]
+        ExportPDF --> API_PDF[GET /api/reports/export/pdf]
+        FilterReport --> Prediction[Lihat Prediksi Penjualan - Backlog]
     end
 
     %% 7. SETTINGS & PROFILE
     subgraph User_Settings [7. Settings & Profile Security]
         Dashboard --> SettingsPage[Halaman Pengaturan]
-        SettingsPage --> ProfileUpdate[Lihat Profil Mandiri]
+        SettingsPage --> ProfileUpdate[Lihat/Edit Profil Mandiri]
         SettingsPage --> ChangePass[Ganti Password]
+        SettingsPage --> StoreSettings[Admin: Konfigurasi Toko & Struk]
+        
+        StoreSettings --> API_Settings[POST /api/settings]
         
         ChangePass --> PassForm[Input Password Lama & Baru]
         PassForm --> API_Pass[REST: PUT /api/auth/change-password]

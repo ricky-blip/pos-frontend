@@ -5,10 +5,15 @@ import MenuSection from "../components/MenuSection";
 import OrderPanel from "../components/OrderPanel";
 import TransactionSuccessModal from "../components/TransactionSuccessModal";
 import DetailMenuModal from "../components/DetailMenuModal";
+import DraftOrdersModal from "../components/DraftOrdersModal";
 import { useCashierCatalog } from "../../models/catalog.model";
 import { MenuGridSkeleton } from "../../../shared/components/MenuSkeleton";
 import transactionService from "../../../shared/services/transaction.service";
 import useToastStore from "../../../../stores/useToastStore";
+import LowStockWidget from "../../../shared/components/LowStockWidget";
+import { shiftService } from "../../services/shift.service";
+import OpenShiftModal from "../components/OpenShiftModal";
+import EndShiftModal from "../components/EndShiftModal";
 
 export default function CashierDashboardPage() {
   const { categories, menus, isLoading, error, fetchMenus } = useCashierCatalog();
@@ -25,6 +30,46 @@ export default function CashierDashboardPage() {
   const [itemNotes, setItemNotes] = useState({});
   const [isProcessing, setIsProcessing] = useState(false);
   const showToast = useToastStore((s) => s.showToast);
+  
+  // State untuk Draft Orders
+  const [draftOrders, setDraftOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem("padipos_draft_orders");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isDraftModalOpen, setIsDraftModalOpen] = useState(false);
+  
+  // State untuk Shift
+  const [activeShift, setActiveShift] = useState(null);
+  const [isShowOpenShift, setIsShowOpenShift] = useState(false);
+  const [isShowEndShift, setIsShowEndShift] = useState(false);
+  const [isShiftChecking, setIsShiftChecking] = useState(true);
+
+  useEffect(() => {
+    const checkShift = async () => {
+      try {
+        setIsShiftChecking(true);
+        const shift = await shiftService.getActiveShift();
+        if (shift) {
+          setActiveShift(shift);
+        } else {
+          setIsShowOpenShift(true);
+        }
+      } catch (error) {
+        console.error("Failed to check shift", error);
+      } finally {
+        setIsShiftChecking(false);
+      }
+    };
+    checkShift();
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("padipos_draft_orders", JSON.stringify(draftOrders));
+  }, [draftOrders]);
   
   // State untuk Detail Menu Modal
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -184,8 +229,84 @@ export default function CashierDashboardPage() {
     setItemNotes({});
   };
 
+  const handleHoldOrder = () => {
+    if (cartItems.length === 0) return;
+    const newDraft = {
+      cartItems,
+      customerName,
+      tableNumber,
+      orderType,
+      timestamp: new Date().toISOString()
+    };
+    setDraftOrders((prev) => [newDraft, ...prev]);
+    showToast("Order put on hold", "success");
+    // Clear cart
+    setCartItems([]);
+    setAmountPaid("");
+    setCustomerName("");
+    setTableNumber("");
+    setItemNotes({});
+  };
+
+  const handleResumeOrder = (index) => {
+    const draft = draftOrders[index];
+    if (!draft) return;
+    
+    // Optional: Ask confirmation if current cart is not empty
+    if (cartItems.length > 0) {
+      if (!window.confirm("Current cart will be cleared. Do you want to continue?")) {
+        return;
+      }
+    }
+
+    setCartItems(draft.cartItems);
+    setCustomerName(draft.customerName);
+    setTableNumber(draft.tableNumber);
+    setOrderType(draft.orderType);
+    
+    // Remove from drafts
+    setDraftOrders((prev) => prev.filter((_, i) => i !== index));
+    setIsDraftModalOpen(false);
+    showToast("Order resumed", "success");
+  };
+
+  const handleDeleteDraft = (index) => {
+    if (window.confirm("Are you sure you want to discard this held order?")) {
+      setDraftOrders((prev) => prev.filter((_, i) => i !== index));
+      showToast("Held order discarded", "success");
+    }
+  };
+
+  if (isShiftChecking) {
+    return (
+      <div className="flex flex-1 items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500 font-medium">Memeriksa status kasir...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
+      <OpenShiftModal
+        isOpen={isShowOpenShift}
+        onOpenSuccess={(shift) => {
+          setActiveShift(shift);
+          setIsShowOpenShift(false);
+        }}
+      />
+
+      <EndShiftModal
+        isOpen={isShowEndShift}
+        onClose={() => setIsShowEndShift(false)}
+        onEndSuccess={() => {
+          setActiveShift(null);
+          setIsShowEndShift(false);
+          setIsShowOpenShift(true);
+        }}
+      />
       {/* Main Content Grid */}
       <div className="grid min-w-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_390px]">
         <section className="flex min-w-0 flex-col gap-4">
@@ -209,6 +330,10 @@ export default function CashierDashboardPage() {
               onSelectMenu={handleSelectMenuForDetail}
             />
           )}
+          
+          <div className="mt-4">
+            <LowStockWidget />
+          </div>
         </section>
 
         <OrderPanel
@@ -230,6 +355,10 @@ export default function CashierDashboardPage() {
           onNoteChange={handleNoteChange}
           onPay={handlePay}
           isProcessing={isProcessing}
+          onHoldOrder={handleHoldOrder}
+          onOpenDrafts={() => setIsDraftModalOpen(true)}
+          draftCount={draftOrders.length}
+          onEndShift={() => setIsShowEndShift(true)}
         />
       </div>
 
@@ -253,6 +382,15 @@ export default function CashierDashboardPage() {
         onClose={handleCloseDetailModal}
         menu={selectedMenu}
         onSubmit={handleSubmitDetailMenu}
+      />
+
+      {/* Draft Orders Modal */}
+      <DraftOrdersModal
+        isOpen={isDraftModalOpen}
+        onClose={() => setIsDraftModalOpen(false)}
+        drafts={draftOrders}
+        onResume={handleResumeOrder}
+        onDelete={handleDeleteDraft}
       />
     </>
   );

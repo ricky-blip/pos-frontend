@@ -2,7 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import TransactionDetailModal from "../components/TransactionDetailModal";
 import ReportSummaryCards from "../../shared/components/ReportSummaryCards";
 import { reportService } from "../../shared/services/report.service";
+import { userService } from "../services/user.service";
+import { categoryService } from "../../shared/services/category.service";
 import useToastStore from "../../../stores/useToastStore";
+import useAuthStore from "../../../stores/useAuthStore";
 
 /**
  * SalesReportPage - Halaman laporan penjualan untuk admin
@@ -21,6 +24,7 @@ export default function SalesReportPage() {
     startDate: getTodayStr(),
     endDate: getTodayStr(),
     categoryId: "all",
+    userId: "all",
   });
   
   const [reportData, setReportData] = useState({
@@ -28,9 +32,13 @@ export default function SalesReportPage() {
     transactions: [],
     pagination: { totalPages: 1, total: 0 }
   });
+
+  const [users, setUsers] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const userRole = useAuthStore((s) => s.user?.role);
   
   const [isLoading, setIsLoading] = useState(false);
-  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,6 +59,7 @@ export default function SalesReportPage() {
         startDate: start.toISOString(),
         endDate: end.toISOString(),
         categoryId: filters.categoryId !== "all" ? filters.categoryId : null,
+        userId: filters.userId !== "all" ? filters.userId : null,
         page: currentPage,
         limit: entriesPerPage
       };
@@ -68,6 +77,22 @@ export default function SalesReportPage() {
     fetchReport();
   }, [fetchReport]);
 
+  useEffect(() => {
+    const loadFilterData = async () => {
+      try {
+        if (userRole === "admin") {
+          const fetchedUsers = await userService.getAllUsers();
+          setUsers(fetchedUsers);
+        }
+        const fetchedCategories = await categoryService.getAll();
+        setCategories(fetchedCategories);
+      } catch (error) {
+        console.error("Failed to load filter data", error);
+      }
+    };
+    loadFilterData();
+  }, [userRole]);
+
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
@@ -81,6 +106,30 @@ export default function SalesReportPage() {
   const handleViewDetail = (transaction) => {
     setSelectedTransaction(transaction);
     setShowDetailModal(true);
+  };
+
+  const handleExportPdf = async () => {
+    try {
+      setIsExporting(true);
+      const start = new Date(filters.startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(filters.endDate);
+      end.setHours(23, 59, 59, 999);
+
+      const params = {
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+        categoryId: filters.categoryId !== "all" ? filters.categoryId : null,
+        userId: filters.userId !== "all" ? filters.userId : null,
+      };
+
+      await reportService.exportPdf(params);
+      showToast("Laporan PDF berhasil diunduh", "success");
+    } catch (error) {
+      showToast(error.message || "Gagal mengunduh PDF", "error");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const formatDate = (dateStr) => {
@@ -114,8 +163,24 @@ export default function SalesReportPage() {
 
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
-        <h1 className="text-2xl font-bold text-[#111827]">Sales Report</h1>
-        <p className="text-sm text-[#6b7280]">Today, {getCurrentDateDisplay()}</p>
+        <div>
+          <h1 className="text-2xl font-bold text-[#111827]">Sales Report</h1>
+          <p className="text-sm text-[#6b7280]">Today, {getCurrentDateDisplay()}</p>
+        </div>
+        <button
+          onClick={handleExportPdf}
+          disabled={isExporting}
+          className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-semibold shadow-md shadow-red-200 transition-all disabled:opacity-70"
+        >
+          {isExporting ? (
+            <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          )}
+          {isExporting ? 'Exporting...' : 'Export PDF'}
+        </button>
       </div>
 
       {/* Summary Cards */}
@@ -155,11 +220,28 @@ export default function SalesReportPage() {
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none"
             >
               <option value="all">All Category</option>
-              <option value="1">Foods</option>
-              <option value="2">Beverages</option>
-              <option value="3">Desserts</option>
+              {categories.map((cat) => (
+                <option key={cat.dbId} value={cat.dbId}>{cat.label}</option>
+              ))}
             </select>
           </div>
+
+          {userRole === "admin" && (
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Kasir</label>
+              <select
+                name="userId"
+                value={filters.userId}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none"
+              >
+                <option value="all">All Cashiers</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>{user.username}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Order Type</label>

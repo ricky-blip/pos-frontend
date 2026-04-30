@@ -5,6 +5,8 @@ import CategoryFilter from "../components/CategoryFilter";
 import AddMenuForm from "../components/AddMenuForm";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import DetailMenuPanel from "../components/DetailMenuPanel";
+import CategoryManagementModal from "../components/CategoryManagementModal";
+import StockAdjustmentModal from "../components/StockAdjustmentModal";
 import { useMenuAPI } from "../models/menu.model";
 import { useCategoryModel } from "../../shared/models/category.model";
 import { MenuGridSkeleton } from "../../shared/components/MenuSkeleton";
@@ -24,6 +26,8 @@ export default function CatalogPage() {
   const [selectedMenu, setSelectedMenu] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showStockModal, setShowStockModal] = useState(false);
   const [menuToDelete, setMenuToDelete] = useState(null);
   const [filteredMenus, setFilteredMenus] = useState([]);
   
@@ -124,12 +128,32 @@ export default function CatalogPage() {
 
   return (
     <div className="flex w-full h-full gap-5">
-      {/* Delete Confirmation Modal */}
+      {/* Category Management Modal */}
+      <CategoryManagementModal
+        isOpen={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+      />
+
       <DeleteConfirmModal
         isOpen={showDeleteModal}
         onCancel={handleCancelDelete}
         onConfirm={handleConfirmDelete}
         itemName={menuToDelete?.name}
+      />
+
+      {/* Stock Adjustment Modal */}
+      <StockAdjustmentModal
+        isOpen={showStockModal}
+        onClose={() => setShowStockModal(false)}
+        menu={selectedMenu}
+        onUpdate={() => {
+          fetchMenus(activeCategory, searchKeyword).then(setFilteredMenus);
+          // Refresh the currently selected menu object so DetailMenuPanel updates
+          if (selectedMenu) {
+             const updated = filteredMenus.find(m => m.id === selectedMenu.id);
+             if (updated) setSelectedMenu(updated);
+          }
+        }}
       />
 
       {/* Left Section - Menu List */}
@@ -139,11 +163,23 @@ export default function CatalogPage() {
           <div>
             <h1 className="text-2xl font-bold text-[#111827]">List Menu</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-[#6b7280]">Total:</span>
-            <span className="text-sm font-semibold text-[#111827]">
-              {filteredMenus.length} Menu
-            </span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowCategoryModal(true)}
+              className="text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+              </svg>
+              Manage Categories
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-[#6b7280]">Total:</span>
+              <span className="text-sm font-semibold text-[#111827]">
+                {filteredMenus.length} Menu
+              </span>
+            </div>
           </div>
         </div>
 
@@ -210,6 +246,7 @@ export default function CatalogPage() {
               menu={selectedMenu}
               onEdit={handleEditClick}
               onDelete={handleDeleteClick}
+              onAdjustStock={() => setShowStockModal(true)}
             />
           )
         ) : (

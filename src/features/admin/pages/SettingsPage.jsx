@@ -2,6 +2,7 @@ import { useState } from "react";
 import useAuthStore from "../../../stores/useAuthStore";
 import useToastStore from "../../../stores/useToastStore";
 import { authService } from "../../auth/services/auth.service";
+import { settingService } from "../services/setting.service";
 
 function getInitials(name) {
   if (!name) return "??";
@@ -33,6 +34,37 @@ export default function SettingsPage() {
     confirmPassword: "",
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  // --- Store Settings ---
+  const [storeSettings, setStoreSettings] = useState({
+    store_name: "PadiPos",
+    receipt_header: "",
+    receipt_footer: "Terima kasih atas kunjungan Anda!"
+  });
+  const [isLoadingSettings, setIsLoadingSettings] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  useState(() => {
+    const fetchSettings = async () => {
+      if (user?.role !== "admin") return;
+      try {
+        setIsLoadingSettings(true);
+        const data = await settingService.getSettings();
+        if (data) {
+          setStoreSettings({
+            store_name: data.store_name || "PadiPos",
+            receipt_header: data.receipt_header || "",
+            receipt_footer: data.receipt_footer || "Terima kasih atas kunjungan Anda!"
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch settings", error);
+      } finally {
+        setIsLoadingSettings(false);
+      }
+    };
+    fetchSettings();
+  }, [user]);
 
   const handleProfileSave = async (e) => {
     e.preventDefault();
@@ -77,6 +109,19 @@ export default function SettingsPage() {
       showToast(error.message || "Gagal mengubah password", "error");
     } finally {
       setIsChangingPassword(false);
+    }
+  };
+
+  const handleSettingsSave = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSavingSettings(true);
+      await settingService.updateSettings(storeSettings);
+      showToast("Pengaturan toko berhasil diperbarui!", "success");
+    } catch (error) {
+      showToast(error.message || "Gagal memperbarui pengaturan toko", "error");
+    } finally {
+      setIsSavingSettings(false);
     }
   };
 
@@ -233,6 +278,60 @@ export default function SettingsPage() {
             </div>
           </form>
         </div>
+
+        {/* ── Store & Receipt Settings (Admin Only) ── */}
+        {user?.role === "admin" && (
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <h2 className="text-lg font-bold text-[#111827] mb-6">Store & Receipt Configuration</h2>
+            
+            <form onSubmit={handleSettingsSave} className="max-w-xl space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Nama Toko</label>
+                <input
+                  type="text"
+                  required
+                  value={storeSettings.store_name}
+                  onChange={(e) => setStoreSettings({ ...storeSettings, store_name: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
+                  placeholder="Contoh: Kedai Padi Kopi"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Pesan Header Struk (Opsional)</label>
+                <textarea
+                  value={storeSettings.receipt_header}
+                  onChange={(e) => setStoreSettings({ ...storeSettings, receipt_header: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none resize-none"
+                  rows="2"
+                  placeholder="Contoh: Jl. Merdeka No. 123, Jakarta"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Pesan Footer Struk</label>
+                <textarea
+                  value={storeSettings.receipt_footer}
+                  onChange={(e) => setStoreSettings({ ...storeSettings, receipt_footer: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none resize-none"
+                  rows="2"
+                  placeholder="Contoh: Terima kasih, silakan berkunjung kembali!"
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isSavingSettings}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-md shadow-green-100 transition-all flex items-center gap-2"
+                >
+                  {isSavingSettings && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>}
+                  Simpan Konfigurasi Toko
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* ── Preferences (Coming Soon) ── */}
         <div className="bg-gray-50 p-6 rounded-2xl border border-dashed border-gray-200 opacity-60">

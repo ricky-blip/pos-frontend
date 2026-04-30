@@ -1,3 +1,7 @@
+import { useState, useEffect } from "react";
+import useAuthStore from "../../../../stores/useAuthStore";
+import { settingService } from "../../admin/services/setting.service";
+
 function CloseIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
@@ -26,8 +30,27 @@ export default function TransactionSuccessModal({
   subtotal,
   tax,
   total,
-  amountPaid,
+  amountPaid
 }) {
+  const user = useAuthStore(s => s.user);
+  const [settings, setSettings] = useState({
+    store_name: "PadiPos",
+    receipt_header: "",
+    receipt_footer: "Terima kasih atas kunjungan Anda!"
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      settingService.getSettings().then(data => {
+        if (data) setSettings({
+          store_name: data.store_name || "PadiPos",
+          receipt_header: data.receipt_header || "",
+          receipt_footer: data.receipt_footer || "Terima kasih atas kunjungan Anda!"
+        });
+      });
+    }
+  }, [isOpen]);
+
   if (!isOpen) {
     return null;
   }
@@ -41,20 +64,24 @@ export default function TransactionSuccessModal({
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 text-[#6b7280] transition-colors hover:text-[#111827]"
+          className="no-print absolute right-4 top-4 text-[#6b7280] transition-colors hover:text-[#111827]"
         >
           <CloseIcon />
         </button>
 
-        <h2 className="mb-5 text-center text-[20px] font-semibold text-[#111827]">
+        <h2 className="no-print mb-5 text-center text-[20px] font-semibold text-[#111827]">
           Transaction Success
         </h2>
 
-        <div className="rounded-2xl bg-[#f7f8fb] p-4">
+        <div className="print-receipt rounded-2xl bg-[#f7f8fb] p-4 text-black">
+          <div className="hidden print:block mb-4 text-center">
+            <h1 className="text-xl font-bold">{settings.store_name}</h1>
+            <p className="text-xs text-gray-500 whitespace-pre-wrap">{settings.receipt_header}</p>
+          </div>
           <div className="space-y-1 border-b border-[#e3e8f1] pb-3 text-[11px] text-[#7f8797]">
-            <p>No Order : ORD#1234567890</p>
-            <p>Order Date : Rabu, 10 April 2026 12:30:00</p>
-            <p>Cashier : John Doe</p>
+            <p>No Order : ORD#{Math.floor(Math.random() * 10000000).toString().padStart(8, '0')}</p>
+            <p>Order Date : {new Date().toLocaleString("id-ID")}</p>
+            <p>Cashier : {user?.username}</p>
             <p>
               {orderType === "dine-in" ? "Dine-In" : "Take Away"} :{" "}
               {orderType === "dine-in" ? `No.Meja ${tableNumber || "-"}` : customerName || "-"}
@@ -111,11 +138,15 @@ export default function TransactionSuccessModal({
               <span>{formatPrice(change)}</span>
             </div>
           </div>
+          <div className="hidden print:block mt-6 text-center text-[10px] text-gray-500">
+            <p className="whitespace-pre-wrap">{settings.receipt_footer}</p>
+          </div>
         </div>
 
         <button
           type="button"
-          className="mt-5 h-11 w-full rounded-xl bg-[#3b5bdb] text-sm font-medium text-white transition-colors hover:bg-[#3552c7]"
+          onClick={() => window.print()}
+          className="no-print mt-5 h-11 w-full rounded-xl bg-[#3b5bdb] text-sm font-medium text-white transition-colors hover:bg-[#3552c7]"
         >
           Print Struk
         </button>

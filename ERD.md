@@ -9,6 +9,10 @@ erDiagram
     CATEGORIES ||--o{ MENUS : "classifies"
     TRANSACTIONS ||--|{ TRANSACTION_ITEMS : "contains"
     MENUS ||--o{ TRANSACTION_ITEMS : "included in"
+    USERS ||--o{ ACTIVITY_LOGS : "performed"
+    USERS ||--o{ STOCK_LOGS : "recorded by"
+    MENUS ||--o{ STOCK_LOGS : "tracked"
+    USERS ||--o{ SHIFTS : "operates"
 
     USERS {
         int id PK
@@ -73,6 +77,46 @@ erDiagram
         string token "Secure hash"
         datetime expires_at
     }
+
+    ACTIVITY_LOGS {
+        int id PK
+        int userId FK
+        string action "Event type (LOGIN, CREATE_USER, etc)"
+        string details "JSON or string description"
+        string ipAddress "Optional"
+        datetime createdAt
+    }
+
+    STOCK_LOGS {
+        int id PK
+        int menuId FK
+        int userId FK
+        enum type "IN, OUT, ADJUSTMENT"
+        int quantity "Positive/Negative"
+        string reason "Adjustment note"
+        datetime createdAt
+    }
+
+    SHIFTS {
+        int id PK
+        int userId FK
+        datetime startTime "Shift start"
+        datetime endTime "Shift end"
+        decimal startingCash "Float amount"
+        decimal expectedEndingCash "System calculation"
+        decimal actualEndingCash "User count"
+        enum status "OPEN, CLOSED"
+        string notes "Discrepancy reason"
+        datetime createdAt
+    }
+
+    SETTINGS {
+        int id PK
+        string key "Unique key"
+        text value "Config value"
+        string group "Group name"
+        datetime createdAt
+    }
 ```
 
 ---
@@ -83,6 +127,9 @@ erDiagram
 2.  **Snapshotting**: Tabel `TRANSACTION_ITEMS` menyimpan `priceAtTransaction` secara terpisah dari tabel `MENUS`. Hal ini memastikan jika harga menu berubah di masa depan, total belanja di transaksi lama tetap akurat.
 3.  **Audit Trail**: Field `userId` pada `TRANSACTIONS` memastikan akuntabilitas setiap transaksi yang diproses oleh kasir tertentu.
 4.  **Availability Control**: Field `is_available` pada `MENUS` memungkinkan admin untuk me-nonaktifkan menu (Soft Delete/Hide) tanpa menghapus record-nya dari data historis transaksi.
+5.  **Inventory Tracking**: Tabel `STOCK_LOGS` mencatat setiap perubahan stok secara mendetail (IN/OUT/ADJUSTMENT), memungkinkan audit stok yang transparan.
+6.  **Shift Reconciliation**: Tabel `SHIFTS` memastikan uang laci kasir terlacak antara saldo awal dan saldo akhir fisik, mencegah terjadinya kebocoran kas.
+7.  **Dynamic Configuration**: Tabel `SETTINGS` memungkinkan perubahan nama toko dan kustomisasi struk tanpa perlu mengubah kode sumber.
 
 ---
 

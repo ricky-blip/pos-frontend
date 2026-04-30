@@ -66,10 +66,11 @@ Aplikasi Point of Sale (POS) yang dibangun dengan React, Vite, dan Tailwind CSS.
 
 Aplikasi ini adalah **sistem kasir digital (Point of Sale)** yang biasa digunakan di restoran, cafe, atau toko. Aplikasi ini punya beberapa jenis pengguna:
 
-- **👨‍💼 Admin** → Bisa melihat laporan, mengatur menu, dan mengelola pengguna
-- **💰 Kasir (Cashier)** → Bisa membuat pesanan, memproses pembayaran, dan melihat ringkasan penjualan
+- **👨‍💼 Admin** → Bisa melihat laporan (PDF & Analitik), mengatur menu, mengelola stok (Adjustment), serta mengelola pengguna & activity logs.
+- **💰 Kasir (Cashier)** → Wajib mengelola **Shift** (Buka/Tutup Kasir), memproses pesanan, pembayaran, dan melihat ringkasan penjualan harian.
 
 Setiap jenis pengguna punya tampilan dan fitur yang berbeda!
+Aplikasi ini sudah mendukung **Cetak Struk** yang dapat dikustomisasi dan fitur **Hold Order**.
 
 ---
 
@@ -208,13 +209,14 @@ Halaman lain   Halaman lain
 | `/login` | Login Page | AuthLayout (background saja) | Semua pengguna |
 | `/register` | Register Page | AuthLayout (background saja) | Pengguna baru |
 | `/reset-password` | Reset Password | AuthLayout (background saja) | Lupa password |
-| `/dashboard` | Dashboard Kasir | CashierLayout (header + sidebar) | Kasir |
-| `/dashboard/sales-report` | Laporan Penjualan | CashierLayout (header + sidebar) | Kasir |
-| `/dashboard/settings` | Pengaturan | CashierLayout (header + sidebar) | Kasir |
-| `/admin/dashboard` | Dashboard Admin | AdminLayout (header + sidebar) | Admin |
-| `/admin/catalog` | Kelola Menu | AdminLayout (header + sidebar) | Admin |
-| `/admin/sales-report` | Laporan Penjualan | AdminLayout (header + sidebar) | Admin |
-| `/admin/settings` | Pengaturan Admin | AdminLayout (header + sidebar) | Admin |
+| `/dashboard` | Dashboard Kasir | CashierLayout | Kasir |
+| `/dashboard/sales-report` | Laporan Penjualan | CashierLayout | Kasir |
+| `/dashboard/settings` | Pengaturan Profil | CashierLayout | Kasir |
+| `/admin/dashboard` | Dashboard Admin | AdminLayout | Admin |
+| `/admin/catalog` | Kelola Katalog & Stok | AdminLayout | Admin |
+| `/admin/sales-report` | Analitik & Export PDF | AdminLayout | Admin |
+| `/admin/settings` | Pengaturan Toko & Profil | AdminLayout | Admin |
+| `/admin/activity-logs` | Audit Trail Aktivitas | AdminLayout | Admin |
 
 ---
 
@@ -745,11 +747,24 @@ Jika user belum login atau role-nya tidak sesuai, mereka akan di-redirect ke `/l
 
 ---
 
-## 📚 Sumber Belajar Tambahan
+---
 
-- [React Official Tutorial](https://react.dev/learn)
-- [React Router Tutorial](https://reactrouter.com/en/main)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [Vite Documentation](https://vitejs.dev/guide/)
+## 🚀 Fitur Baru (Production Ready)
+
+### 1. Modul Inventori Lanjutan
+- **Adjustment**: Admin dapat menyesuaikan stok manual dengan alasan (rusak/adjustment).
+- **Notifikasi**: Alert stok menipis (< 5) di dashboard.
+- **Audit**: Log riwayat stok per item menu.
+
+### 2. Manajemen Shift & Kasir
+- **Accountability**: Kasir wajib input saldo awal (Open Shift) dan saldo akhir fisik (End Shift).
+- **Reconciliation**: Sistem menghitung selisih (discrepancy) otomatis.
+
+### 3. Reporting & Kustomisasi
+- **Export PDF**: Unduh laporan penjualan format PDF dengan filter canggih.
+- **Custom Receipt**: Atur nama toko dan info struk langsung dari UI Admin.
 
 ---
+
+## 📚 Sumber Belajar Tambahan
+... (rest of links)

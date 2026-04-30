@@ -25,13 +25,23 @@ export default function OrderPanel({
   onRemoveItem,
   onNoteChange,
   onPay,
+  onHoldOrder,
+  onOpenDrafts,
+  draftCount,
+  onEndShift,
 }) {
   const hasItems = items.length > 0;
   const showPaymentSection = hasItems && total >= 85000;
 
   return (
     <aside className="flex min-h-[420px] w-full max-w-[360px] flex-col rounded-[26px] bg-white p-4 shadow-[0_18px_40px_rgba(15,23,42,0.05)] 2xl:max-w-[390px]">
-      <OrderHeader />
+      <OrderHeader 
+        onHoldOrder={onHoldOrder}
+        onOpenDrafts={onOpenDrafts}
+        draftCount={draftCount}
+        isHoldDisabled={!hasItems}
+        onEndShift={onEndShift}
+      />
       <OrderTypeToggle orderType={orderType} onChange={onOrderTypeChange} />
       <CustomerForm
         orderType={orderType}

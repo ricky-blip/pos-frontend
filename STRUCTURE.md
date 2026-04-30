@@ -38,7 +38,11 @@ pos-frontend/
 │   │   │   │   ├── PaymentSection.jsx
 │   │   │   │   ├── CustomerForm.jsx
 │   │   │   │   ├── EmptyOrderState.jsx
-│   │   │   │   └── ItemNoteModal.jsx
+│   │   │   │   ├── ItemNoteModal.jsx
+│   │   │   │   ├── OpenShiftModal.jsx
+│   │   │   │   └── EndShiftModal.jsx
+│   │   │   ├── services/
+│   │   │   │   └── shift.service.js
 │   │   │   ├── data/
 │   │   │   │   ├── mockMenus.js
 │   │   │   │   └── mockCategories.js
@@ -54,7 +58,11 @@ pos-frontend/
 │   │   │   │   ├── ReportsPage.jsx
 │   │   │   │   ├── MenuManagementPage.jsx
 │   │   │   │   └── UserManagementPage.jsx
-│   │   │   ├── components/            # (Future: AdminHeader, StatsCard, etc.)
+│   │   │   ├── components/
+│   │   │   │   └── StockAdjustmentModal.jsx
+│   │   │   ├── services/
+│   │   │   │   ├── setting.service.js
+│   │   │   │   └── (from shared: report.service.js)
 │   │   │   ├── data/                  # (Future: analytics data)
 │   │   │   ├── hooks/                 # (Future: useAnalytics, useInventory)
 │   │   │   ├── index.js               # ✅ Feature exports
@@ -67,7 +75,12 @@ pos-frontend/
 │   │   └── README.md                  # ✅ Features documentation
 │   │
 │   ├── shared/                        # 🔄 Shared across all features
-│   │   ├── components/                # (Future: Button, Input, Modal)
+│   │   ├── components/
+│   │   │   ├── LowStockWidget.jsx
+│   │   │   └── (UI elements: Button, Input, Modal)
+│   │   ├── services/
+│   │   │   ├── report.service.js
+│   │   │   └── transaction.service.js
 │   │   └── utils/                     # (Future: helpers, formatters)
 │   │
 │   ├── router/                        # 🛣️ Route configuration
@@ -105,9 +118,10 @@ pos-frontend/
 | Route | Component | Feature |
 |-------|-----------|---------|
 | `/admin/dashboard` | AdminDashboardPage | admin |
-| `/admin/catalog` | MenuManagementPage | admin |
+| `/admin/catalog` | CatalogPage | admin |
 | `/admin/sales-report` | SalesReportPage | admin |
 | `/admin/settings` | SettingsPage | admin |
+| `/admin/activity-logs` | ActivityLogsPage | admin |
 
 ## Import Examples
 
