@@ -1,6 +1,5 @@
+import { API_BASE_URL } from "../../../constants/api";
 import useAuthStore from "../../../stores/useAuthStore.jsx";
-
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const transactionService = {
   /**
@@ -10,7 +9,7 @@ const transactionService = {
   async createTransaction(transactionData) {
     const token = useAuthStore.getState().token;
     
-    const response = await fetch(`${BASE_URL}/transactions`, {
+    const response = await fetch(`${API_BASE_URL}/transactions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -34,7 +33,7 @@ const transactionService = {
   async getTransactionHistory() {
     const token = useAuthStore.getState().token;
 
-    const response = await fetch(`${BASE_URL}/transactions`, {
+    const response = await fetch(`${API_BASE_URL}/transactions`, {
       headers: {
         "Authorization": `Bearer ${token}`,
       },
@@ -55,7 +54,7 @@ const transactionService = {
   async getTransactionById(id) {
     const token = useAuthStore.getState().token;
 
-    const response = await fetch(`${BASE_URL}/transactions/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/transactions/${id}`, {
       headers: {
         "Authorization": `Bearer ${token}`,
       },

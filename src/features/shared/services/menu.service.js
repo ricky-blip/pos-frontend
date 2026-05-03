@@ -2,13 +2,16 @@ import { API_BASE_URL } from "../../../constants/api";
 import useAuthStore from "../../../stores/useAuthStore";
 
 export const menuService = {
-  getAll: async (categoryId = "", search = "") => {
+  getAll: async (categoryId = "", search = "", isAvailable = null) => {
     let params = new URLSearchParams();
     if (categoryId && categoryId !== "all") {
       params.append("categoryId", categoryId);
     }
     if (search) {
       params.append("search", search);
+    }
+    if (isAvailable !== null) {
+      params.append("is_available", isAvailable);
     }
 
     const queryString = params.toString();

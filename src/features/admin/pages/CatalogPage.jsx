@@ -79,8 +79,15 @@ export default function CatalogPage() {
       try {
         await deleteMenu(menuToDelete.id);
         showToast("Menu successfully deleted!", "success");
-        // Refresh menu list
-        const result = await fetchMenus(activeCategory);
+        
+        // Clear selected menu if it's the one deleted
+        if (selectedMenu?.id === menuToDelete.id) {
+          setSelectedMenu(null);
+        }
+
+        // Refresh menu list with correct params
+        const selectedCat = categories.find((c) => c.id === activeCategory);
+        const result = await fetchMenus(selectedCat?.dbId || "all", searchKeyword);
         setFilteredMenus(result);
       } catch (error) {
         showToast("Failed to delete menu", "error");
@@ -96,8 +103,8 @@ export default function CatalogPage() {
   };
 
   const handleAddNew = () => {
-    setSelectedMenu(null);
-    setIsEditing(false);
+    setSelectedMenu({}); // Use empty object to trigger form
+    setIsEditing(true);
   };
 
   const handleCancelForm = () => {
@@ -106,7 +113,7 @@ export default function CatalogPage() {
 
   const handleSaveMenu = async (menuData) => {
     try {
-      if (selectedMenu && isEditing) {
+      if (selectedMenu?.id && isEditing) {
         await updateMenu(selectedMenu.id, menuData);
         showToast("Menu successfully updated!", "success");
         // Update selected menu with new data
@@ -116,10 +123,14 @@ export default function CatalogPage() {
       } else {
         await addMenu(menuData);
         showToast("New menu successfully added!", "success");
+        // Clear state after adding
+        setSelectedMenu(null);
+        setIsEditing(false);
       }
       
-      // Refresh menu list
-      const result = await fetchMenus(activeCategory);
+      // Refresh menu list with correct params
+      const selectedCat = categories.find((c) => c.id === activeCategory);
+      const result = await fetchMenus(selectedCat?.dbId || "all", searchKeyword);
       setFilteredMenus(result);
     } catch (error) {
       showToast(isEditing ? "Failed to update menu" : "Failed to add menu", "error");

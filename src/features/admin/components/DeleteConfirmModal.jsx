@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { createPortal } from "react-dom";
 
 /**
  * DeleteConfirmModal - Modal konfirmasi untuk menghapus item
@@ -6,8 +7,8 @@ import PropTypes from "prop-types";
 export default function DeleteConfirmModal({ isOpen, onCancel, onConfirm, itemName }) {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4 animate-scale-in">
         {/* Icon */}
         <div className="flex justify-center mb-4">
@@ -56,7 +57,8 @@ export default function DeleteConfirmModal({ isOpen, onCancel, onConfirm, itemNa
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

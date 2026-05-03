@@ -58,6 +58,12 @@ export default function OrderHeader({ onHoldOrder, onOpenDrafts, draftCount, isH
           onClick={onOpenDrafts}
           title="Draft Orders"
           className="relative rounded-xl border border-[#dce3ef] p-2 text-[#9aa3b2] transition-colors hover:border-[#3b5bdb] hover:text-[#3b5bdb]"
+        >
+          <ListIcon />
+          {draftCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#3b5bdb] text-[10px] font-bold text-white">
+              {draftCount}
+            </span>
           )}
         </button>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { useCategoryModel } from "../../shared/models/category.model";
 import useToastStore from "../../../stores/useToastStore";
@@ -88,8 +89,8 @@ export default function CategoryManagementModal({ isOpen, onClose }) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm">
       <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl animate-scale-in max-h-[85vh] flex flex-col">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between shrink-0">
@@ -250,7 +251,8 @@ export default function CategoryManagementModal({ isOpen, onClose }) {
           </table>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

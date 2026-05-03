@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "../../../../stores/useAuthStore";
-import { settingService } from "../../admin/services/setting.service";
+import { settingService } from "../../../admin/services/setting.service";
 
 function CloseIcon() {
   return (
@@ -30,7 +30,8 @@ export default function TransactionSuccessModal({
   subtotal,
   tax,
   total,
-  amountPaid
+  amountPaid,
+  transaction
 }) {
   const user = useAuthStore(s => s.user);
   const [settings, setSettings] = useState({
@@ -59,7 +60,7 @@ export default function TransactionSuccessModal({
   const change = Math.max(Number(amountPaid || 0) - total, 0);
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 px-4 py-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
       <div className="relative w-full max-w-md rounded-[22px] bg-white px-7 py-8 shadow-[0_30px_80px_rgba(15,23,42,0.25)]">
         <button
           type="button"
@@ -79,8 +80,8 @@ export default function TransactionSuccessModal({
             <p className="text-xs text-gray-500 whitespace-pre-wrap">{settings.receipt_header}</p>
           </div>
           <div className="space-y-1 border-b border-[#e3e8f1] pb-3 text-[11px] text-[#7f8797]">
-            <p>No Order : ORD#{Math.floor(Math.random() * 10000000).toString().padStart(8, '0')}</p>
-            <p>Order Date : {new Date().toLocaleString("id-ID")}</p>
+            <p>No Order : {transaction?.invoiceNumber || "ORD#--------"}</p>
+            <p>Order Date : {transaction ? new Date(transaction.date).toLocaleString("id-ID") : new Date().toLocaleString("id-ID")}</p>
             <p>Cashier : {user?.username}</p>
             <p>
               {orderType === "dine-in" ? "Dine-In" : "Take Away"} :{" "}

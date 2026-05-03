@@ -749,20 +749,29 @@ Jika user belum login atau role-nya tidak sesuai, mereka akan di-redirect ke `/l
 
 ---
 
-## 🚀 Fitur Baru (Production Ready)
+## 🚀 Fitur Lengkap (MVP Production Ready)
 
-### 1. Modul Inventori Lanjutan
-- **Adjustment**: Admin dapat menyesuaikan stok manual dengan alasan (rusak/adjustment).
-- **Notifikasi**: Alert stok menipis (< 5) di dashboard.
-- **Audit**: Log riwayat stok per item menu.
+### 1. Manajemen Pengguna & Keamanan Lanjutan
+- **Manajemen Staf**: Admin dapat menambah, mengedit, dan menghapus akun Kasir (Single Admin Policy).
+- **Log Aktivitas (Audit Trail)**: Seluruh aktivitas (login, CRUD, update profil) dicatat dan dapat dilihat oleh Admin.
+- **Update Profil Mandiri**: User dapat mengubah username, email, dan mengganti password mereka sendiri.
 
-### 2. Manajemen Shift & Kasir
-- **Accountability**: Kasir wajib input saldo awal (Open Shift) dan saldo akhir fisik (End Shift).
-- **Reconciliation**: Sistem menghitung selisih (discrepancy) otomatis.
+### 2. Modul Inventori Terpadu
+- **Kategori & Menu**: Pengelolaan katalog produk lengkap dengan gambar dan harga.
+- **Stock Adjustment**: Admin dapat menyesuaikan stok manual dengan alasan khusus (rusak/penyesuaian).
+- **Notifikasi**: Alert stok menipis (< 5) langsung terlihat di dashboard Kasir & Admin.
+- **Stock Audit**: Riwayat log setiap perubahan stok per item menu.
 
-### 3. Reporting & Kustomisasi
-- **Export PDF**: Unduh laporan penjualan format PDF dengan filter canggih.
-- **Custom Receipt**: Atur nama toko dan info struk langsung dari UI Admin.
+### 3. Pengalaman Transaksi Kasir (POS)
+- **Hold/Resume Order**: Kemampuan untuk menyimpan pesanan sementara (Draft) jika pelanggan ingin menambah pesanan nanti.
+- **Cetak Struk Fungsional**: Sistem print struk otomatis dengan UI yang rapi.
+- **Manajemen Shift**: Kasir wajib menginput saldo awal (Open Shift) dan saldo akhir fisik (End Shift) untuk mencegah selisih kas (Reconciliation).
+
+### 4. Pelaporan & Kustomisasi Toko
+- **Laporan Penjualan & Analitik**: Statistik penjualan, grafik tren 30 hari, produk terlaris, dan prediksi stok (Moving Average 7 Hari).
+- **Export PDF**: Unduh laporan penjualan format PDF dengan filter khusus (Kasir, Kategori, Rentang Tanggal).
+- **Custom Receipt & Setting Toko**: Atur nama toko, alamat (header), pesan (footer), dan logo langsung dari UI Admin.
+
 
 ---
 

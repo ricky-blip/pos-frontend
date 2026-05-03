@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import CategoryTabs from "../components/CategoryTabs";
 import MenuSection from "../components/MenuSection";
 import OrderPanel from "../components/OrderPanel";
@@ -14,10 +14,13 @@ import LowStockWidget from "../../../shared/components/LowStockWidget";
 import { shiftService } from "../../services/shift.service";
 import OpenShiftModal from "../components/OpenShiftModal";
 import EndShiftModal from "../components/EndShiftModal";
+import useAuthStore from "../../../../stores/useAuthStore";
 
 export default function CashierDashboardPage() {
   const { categories, menus, isLoading, error, fetchMenus } = useCashierCatalog();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
   const searchKeyword = searchParams.get("search") || "";
 
   const [activeCategory, setActiveCategory] = useState("all");
@@ -29,6 +32,7 @@ export default function CashierDashboardPage() {
   const [cartItems, setCartItems] = useState([]);
   const [itemNotes, setItemNotes] = useState({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [lastTransaction, setLastTransaction] = useState(null);
   const showToast = useToastStore((s) => s.showToast);
   
   // State untuk Draft Orders
@@ -209,7 +213,8 @@ export default function CashierDashboardPage() {
         totalDiscount: 0 // Placeholder for now
       };
 
-      await transactionService.createTransaction(transactionData);
+      const response = await transactionService.createTransaction(transactionData);
+      setLastTransaction(response.data);
       
       showToast("Transaksi Berhasil!", "success");
       setIsSuccessModalOpen(true);
@@ -304,7 +309,8 @@ export default function CashierDashboardPage() {
         onEndSuccess={() => {
           setActiveShift(null);
           setIsShowEndShift(false);
-          setIsShowOpenShift(true);
+          logout();
+          navigate("/login");
         }}
       />
       {/* Main Content Grid */}
@@ -366,6 +372,7 @@ export default function CashierDashboardPage() {
       <TransactionSuccessModal
         isOpen={isSuccessModalOpen}
         onClose={handleCloseSuccessModal}
+        transaction={lastTransaction}
         orderType={orderType}
         customerName={customerName}
         tableNumber={tableNumber}

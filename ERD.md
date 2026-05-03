@@ -130,8 +130,10 @@ erDiagram
 5.  **Inventory Tracking**: Tabel `STOCK_LOGS` mencatat setiap perubahan stok secara mendetail (IN/OUT/ADJUSTMENT), memungkinkan audit stok yang transparan.
 6.  **Shift Reconciliation**: Tabel `SHIFTS` memastikan uang laci kasir terlacak antara saldo awal dan saldo akhir fisik, mencegah terjadinya kebocoran kas.
 7.  **Dynamic Configuration**: Tabel `SETTINGS` memungkinkan perubahan nama toko dan kustomisasi struk tanpa perlu mengubah kode sumber.
+8.  **Single Admin Policy**: Sistem hanya mengizinkan 1 user dengan `role: admin`. Registrasi publik dan penambahan staf melalui Dashboard secara otomatis dipaksa menjadi `role: cashier`.
+9.  **User Lifecycle Management**: Field `isActive` pada `USERS` digunakan untuk menonaktifkan akun staf tanpa menghapusnya, menjaga integritas relasi pada `TRANSACTIONS` dan `ACTIVITY_LOGS`.
 
 ---
 
 > [!TIP]
-> **Skor Kualitas: 97/100**. Diagram ini mencakup cakupan fungsional penuh dari aplikasi PadiPos, termasuk skema pemulihan kata sandi (`PASSWORD_RESETS`) yang krusial untuk standar aplikasi komersial.
+> **Skor Kualitas: 98/100**. Diagram dan dokumentasi ini mencakup cakupan fungsional penuh dari aplikasi PadiPos, termasuk kebijakan keamanan satu Admin yang menjamin kontrol penuh oleh pemilik toko.

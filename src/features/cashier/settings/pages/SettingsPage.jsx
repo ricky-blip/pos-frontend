@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../../../stores/useAuthStore";
 import useToastStore from "../../../../stores/useToastStore";
 import { authService } from "../../../auth/services/auth.service";
@@ -13,7 +14,9 @@ function getInitials(name) {
 export default function SettingsPage() {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
+  const logout = useAuthStore((s) => s.logout);
   const showToast = useToastStore((s) => s.showToast);
+  const navigate = useNavigate();
 
   // --- Profile Edit ---
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -31,6 +34,9 @@ export default function SettingsPage() {
     confirmPassword: "",
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleProfileSave = async (e) => {
     e.preventDefault();
@@ -65,8 +71,13 @@ export default function SettingsPage() {
     try {
       setIsChangingPassword(true);
       await authService.changePassword(passwordData.oldPassword, passwordData.newPassword);
-      showToast("Password berhasil diubah!", "success");
-      setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+      showToast("Password berhasil diubah! Silakan login kembali.", "success");
+      
+      // Logout and redirect
+      setTimeout(() => {
+        logout();
+        navigate("/login");
+      }, 1500);
     } catch (error) {
       showToast(error.message || "Gagal mengubah password", "error");
     } finally {
@@ -182,34 +193,67 @@ export default function SettingsPage() {
           <form onSubmit={handlePasswordChange} className="max-w-xl space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Password Sekarang</label>
-              <input
-                id="cashier-settings-old-password"
-                type="password" required value={passwordData.oldPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
-                placeholder="Masukkan password lama"
-              />
+              <div className="relative">
+                <input
+                  id="cashier-settings-old-password"
+                  type={showOldPassword ? "text" : "password"}
+                  required
+                  value={passwordData.oldPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none pr-12"
+                  placeholder="Masukkan password lama"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowOldPassword(!showOldPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showOldPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Password Baru</label>
-                <input
-                  id="cashier-settings-new-password"
-                  type="password" required value={passwordData.newPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
-                  placeholder="Min. 6 karakter"
-                />
+                <div className="relative">
+                  <input
+                    id="cashier-settings-new-password"
+                    type={showNewPassword ? "text" : "password"}
+                    required
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none pr-12"
+                    placeholder="Min. 6 karakter"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    {showNewPassword ? "🙈" : "👁️"}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Konfirmasi Password Baru</label>
-                <input
-                  id="cashier-settings-confirm-password"
-                  type="password" required value={passwordData.confirmPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
-                  placeholder="Ulangi password baru"
-                />
+                <div className="relative">
+                  <input
+                    id="cashier-settings-confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none pr-12"
+                    placeholder="Ulangi password baru"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    {showConfirmPassword ? "🙈" : "👁️"}
+                  </button>
+                </div>
               </div>
             </div>
             <div className="pt-1">

@@ -18,7 +18,8 @@ graph TD
         LoginPage --> RegisterPage[Halaman Register]
         RegisterPage --> Creds_Reg[Input Data Baru]
         Creds_Reg --> API_Reg[REST: POST /api/auth/register]
-        API_Reg --> LoginPage
+        API_Reg --> Note_Role[Auto: Role Forced to CASHIER]
+        Note_Role --> LoginPage
         Creds --> API_Login[REST: POST /api/auth/login]
         API_Login -- Invalid --> ErrorToast((Toast: Login Gagal))
         ErrorToast --> LoginPage
@@ -88,11 +89,16 @@ graph TD
     %% 6. BACKOFFICE MANAGEMENT
     subgraph Backoffice [6. Backoffice & Reports]
         Admin_Section --> MenuMgmt[Aksi: Kelola Menu]
+        Admin_Section --> UserMgmt[Aksi: Manajemen Staf]
         Admin_Section --> SalesReport[Aksi: Laporan Penjualan]
         Admin_Section --> Inventory[Aksi: Kelola Stok]
         
         MenuMgmt --> CRUD[Create/Update/Delete Menu]
         CRUD --> API_Menu[REST: /api/menus]
+        
+        UserMgmt --> StaffCRUD[Create/Update Staff]
+        StaffCRUD --> StaffPolicy[Single Admin Policy: Auto-CASHIER]
+        StaffPolicy --> API_Users[REST: /api/users]
         
         Inventory --> StockAdj[Modal: Stock Adjustment]
         StockAdj --> API_Adj[POST /api/menus/:id/stock]

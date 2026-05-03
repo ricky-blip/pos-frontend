@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 
 /**
@@ -25,9 +26,14 @@ export default function TransactionDetailModal({ isOpen, onClose, transaction })
     });
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 animate-scale-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+      {/* Clickable backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
+        onClick={onClose}
+      />
+      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 animate-scale-in">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[#e5e7eb]">
           <h2 className="text-2xl font-bold text-[#111827]">Transaction Detail</h2>
@@ -115,7 +121,8 @@ export default function TransactionDetailModal({ isOpen, onClose, transaction })
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

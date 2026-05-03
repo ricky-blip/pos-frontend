@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 function CloseIcon() {
   return (
@@ -41,8 +42,8 @@ export default function DetailMenuModal({ isOpen, onClose, menu, onSubmit }) {
   const categoryLabel =
     menu.category === "foods" ? "Food" : menu.category === "beverages" ? "Drink" : "Dessert";
 
-  return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 px-4 py-8">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 px-4 py-8">
       <div className="relative w-full max-w-md rounded-[22px] bg-white px-6 py-6 shadow-[0_30px_80px_rgba(15,23,42,0.25)]">
         <button
           type="button"
@@ -88,17 +89,13 @@ export default function DetailMenuModal({ isOpen, onClose, menu, onSubmit }) {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!note.trim()}
-            className={`h-12 w-full rounded-xl text-sm font-medium transition-colors ${
-              note.trim()
-                ? "bg-[#3b5bdb] text-white hover:bg-[#3552c7]"
-                : "cursor-not-allowed bg-[#e5e7eb] text-[#9ca3af]"
-            }`}
+            className="h-12 w-full rounded-xl bg-[#3b5bdb] text-sm font-medium text-white transition-colors hover:bg-[#3552c7]"
           >
-            Submit
+            Tambah ke Pesanan
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

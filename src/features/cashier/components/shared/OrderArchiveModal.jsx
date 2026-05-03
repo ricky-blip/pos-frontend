@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import transactionService from "../../../shared/services/transaction.service";
 
 function CloseIcon() {
   return (
@@ -28,46 +29,16 @@ function ArchiveIcon() {
   );
 }
 
-// Mock archived orders data
-const mockArchivedOrders = [
-  {
-    id: "ORD#1234567890",
-    customerName: "John Doe",
-    orderType: "Dine In",
-    tableNumber: "5",
-    total: 150000,
-    items: 5,
-    timestamp: "2026-04-10 14:30:00",
-    status: "completed",
-  },
-  {
-    id: "ORD#0987654321",
-    customerName: "Jane Smith",
-    orderType: "Take Away",
-    tableNumber: "-",
-    total: 85000,
-    items: 3,
-    timestamp: "2026-04-10 13:15:00",
-    status: "completed",
-  },
-  {
-    id: "ORD#1122334455",
-    customerName: "Bob Johnson",
-    orderType: "Dine In",
-    tableNumber: "12",
-    total: 220000,
-    items: 8,
-    timestamp: "2026-04-10 12:00:00",
-    status: "completed",
-  },
-];
-
 /**
  * OrderArchiveModal - Modal to view archived/completed orders
  * @param {boolean} isOpen - Whether the modal is open
  * @param {Function} onClose - Callback to close the modal
  */
 export default function OrderArchiveModal({ isOpen, onClose }) {
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === "Escape" && isOpen) {
@@ -78,6 +49,26 @@ export default function OrderArchiveModal({ isOpen, onClose }) {
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchOrders();
+    }
+  }, [isOpen]);
+
+  const fetchOrders = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await transactionService.getTransactionHistory();
+      setOrders(data || []);
+    } catch (err) {
+      console.error("Failed to fetch order archive:", err);
+      setError("Gagal memuat riwayat pesanan.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -90,9 +81,9 @@ export default function OrderArchiveModal({ isOpen, onClose }) {
       />
 
       {/* Modal Content */}
-      <div className="relative z-10 h-[80vh] w-full max-w-4xl rounded-2xl bg-white p-6 shadow-2xl">
+      <div className="relative z-10 h-[80vh] w-full max-w-4xl rounded-2xl bg-white p-6 shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-5 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-[#f0f3ff] p-2 text-[#3b5bdb]">
               <ArchiveIcon />
@@ -103,21 +94,44 @@ export default function OrderArchiveModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl border border-[#dce3ef] p-2 text-[#9aa3b2] transition-colors hover:border-red-400 hover:text-red-500"
-            aria-label="Close modal"
-          >
-            <CloseIcon />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={fetchOrders}
+              className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+            >
+              🔄 Refresh
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-[#dce3ef] p-2 text-[#9aa3b2] transition-colors hover:border-red-400 hover:text-red-500"
+              aria-label="Close modal"
+            >
+              <CloseIcon />
+            </button>
+          </div>
         </div>
 
         {/* Orders List */}
-        <div className="h-[calc(100%-100px)] overflow-y-auto">
-          {mockArchivedOrders.length === 0 ? (
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {isLoading ? (
+            <div className="flex h-full flex-col items-center justify-center space-y-3">
+              <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-sm text-gray-500">Memuat riwayat...</p>
+            </div>
+          ) : error ? (
+            <div className="flex h-full flex-col items-center justify-center text-center p-6">
+              <p className="text-red-500 mb-2 font-medium">{error}</p>
+              <button 
+                onClick={fetchOrders}
+                className="text-sm text-blue-600 underline"
+              >
+                Coba lagi
+              </button>
+            </div>
+          ) : orders.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-center">
-              <div className="mb-4 rounded-full bg-[#f3f5f9] p-6">
+              <div className="mb-4 rounded-full bg-[#f3f5f9] p-6 text-gray-400">
                 <ArchiveIcon />
               </div>
               <p className="text-lg font-medium text-[#111827]">No archived orders</p>
@@ -125,7 +139,7 @@ export default function OrderArchiveModal({ isOpen, onClose }) {
             </div>
           ) : (
             <div className="space-y-3">
-              {mockArchivedOrders.map((order) => (
+              {orders.map((order) => (
                 <div
                   key={order.id}
                   className="rounded-xl border border-[#dce3ef] p-4 transition-shadow hover:shadow-md"
@@ -133,33 +147,36 @@ export default function OrderArchiveModal({ isOpen, onClose }) {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <h3 className="font-semibold text-[#111827]">{order.id}</h3>
-                        <span className="rounded-md bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                          {order.status}
+                        <h3 className="font-semibold text-[#111827]">{order.invoiceNumber}</h3>
+                        <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${
+                          order.payment?.status === 'completed' 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {order.payment?.status || 'completed'}
                         </span>
                       </div>
                       
-                      <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-[#6b7280]">
+                      <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm text-[#6b7280]">
                         <div>
                           <span className="text-[#9aa3b2]">Customer:</span> {order.customerName}
                         </div>
                         <div>
-                          <span className="text-[#9aa3b2]">Order Type:</span> {order.orderType}
+                          <span className="text-[#9aa3b2]">Method:</span> <span className="capitalize">{order.payment?.method}</span>
                         </div>
                         <div>
-                          <span className="text-[#9aa3b2]">Table:</span> {order.tableNumber}
-                        </div>
-                        <div>
-                          <span className="text-[#9aa3b2]">Items:</span> {order.items}
+                          <span className="text-[#9aa3b2]">Items:</span> {order.items?.length || 0} items
                         </div>
                       </div>
 
-                      <p className="mt-2 text-xs text-[#9aa3b2]">{order.timestamp}</p>
+                      <p className="mt-2 text-xs text-[#9aa3b2]">
+                        {new Date(order.date).toLocaleString("id-ID")}
+                      </p>
                     </div>
 
                     <div className="text-right">
                       <p className="text-lg font-semibold text-[#3b5bdb]">
-                        Rp {order.total.toLocaleString("id-ID")}
+                        Rp {order.totals?.final.toLocaleString("id-ID")}
                       </p>
                     </div>
                   </div>

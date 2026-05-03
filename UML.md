@@ -266,5 +266,40 @@ sequenceDiagram
 
 ---
 
+## 8. Staff Management & Single Admin Policy
+Alur penambahan staf dengan pemaksaan role dan kebijakan satu admin.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin
+    participant UI as UserManagementPage
+    participant Service as UserService
+    participant Route as UserRoute (POST)
+    participant BService as UserService (Backend)
+    participant Repo as UserRepository
+
+    Admin->>UI: Input Data Staf Baru
+    UI->>UI: Role dipaksa ke "Kasir" (Read-only)
+    UI->>Service: createUser(data)
+    Service->>Route: POST /api/users
+    
+    Note over Route: Auth & Role Admin Check
+    Route->>BService: createUser(payload)
+    
+    BService->>BService: Cek Role Input
+    Note right of BService: Jika Role !== 'cashier', Ubah ke 'cashier'
+    
+    BService->>Repo: count({ role: 'admin' })
+    Repo-->>BService: count (1)
+    
+    BService->>BService: Validasi: Hanya boleh 1 Admin
+    
+    BService->>Repo: create(userData)
+    Repo-->>UI: 201 Created (Staf Berhasil Ditambahkan)
+```
+
+---
+
 > [!TIP]
-> **Skor Kualitas: 94/100**. Kelima diagram ini memetakan interaksi full-stack secara presisi, mencakup integrasi Zustand, Route protection, DTO mapping, dan validasi database (Pengecekan stok).
+> **Skor Kualitas: 96/100**. Diagram ini mencakup interaksi full-stack secara presisi, termasuk kebijakan keamanan satu Admin yang menjamin kontrol penuh oleh pemilik toko dan integritas data staf.

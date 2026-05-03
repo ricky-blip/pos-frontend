@@ -22,7 +22,7 @@ export const categoryService = {
       return data.data.map(cat => ({
         id: cat.slug, // mapping target
         dbId: cat.id,
-        label: cat.label
+        label: cat.name || cat.label // Use name from DTO, fallback to label
       }));
     } catch (error) {
       console.error("[CategoryService] GET Error:", error);

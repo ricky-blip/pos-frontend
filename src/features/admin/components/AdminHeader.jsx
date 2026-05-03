@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useAuthStore from "../../../stores/useAuthStore";
+import LogoutConfirmModal from "../../../shared/components/LogoutConfirmModal";
 
 function SearchIcon() {
   return (
@@ -35,6 +36,7 @@ export default function AdminHeader() {
   const user = useAuthStore((s) => s.user);
 
   const [searchValue, setSearchValue] = useState(searchParams.get("search") || "");
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // Debounce search input
   useEffect(() => {
@@ -52,6 +54,10 @@ export default function AdminHeader() {
   }, [searchValue, setSearchParams, searchParams]);
 
   const handleLogout = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const confirmLogout = () => {
     logout();
     navigate("/login");
   };
@@ -98,6 +104,11 @@ export default function AdminHeader() {
           </div>
         </div>
       </div>
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onCancel={() => setIsLogoutModalOpen(false)}
+        onConfirm={confirmLogout}
+      />
     </header>
   );
 }

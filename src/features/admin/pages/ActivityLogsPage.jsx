@@ -25,8 +25,8 @@ export default function ActivityLogsPage() {
   }, []);
 
   const handleSearch = async () => {
-    const userId = searchUser.trim() ? searchUser.trim() : undefined;
-    await fetchLogs({ userId });
+    const search = searchUser.trim() ? searchUser.trim() : undefined;
+    await fetchLogs({ search });
   };
 
   return (
@@ -43,7 +43,7 @@ export default function ActivityLogsPage() {
             value={searchUser}
             onChange={(e) => setSearchUser(e.target.value)}
             className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            placeholder="Cari berdasarkan ID user"
+            placeholder="Cari berdasarkan nama user"
           />
           <button
             onClick={handleSearch}
@@ -74,7 +74,7 @@ export default function ActivityLogsPage() {
               {logs.map((log) => (
                 <tr key={log.id} className="hover:bg-gray-50">
                   <td className="px-5 py-4 whitespace-nowrap">{new Date(log.createdAt).toLocaleString('id-ID')}</td>
-                  <td className="px-5 py-4 whitespace-nowrap">{log.user?.username || 'System'} (ID {log.userId || '-'})</td>
+                  <td className="px-5 py-4 whitespace-nowrap">{log.user?.username || 'System'}</td>
                   <td className="px-5 py-4 whitespace-nowrap font-semibold">{log.action}</td>
                   <td className="px-5 py-4">{log.description}</td>
                   <td className="px-5 py-4 whitespace-nowrap">

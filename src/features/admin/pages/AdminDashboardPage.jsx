@@ -88,63 +88,50 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Stats Cards (Reusing shared summary logic) */}
-      <div className="mb-8 overflow-x-auto pb-2">
-        <div className="flex gap-4 min-w-[1000px]">
-          <div className="flex-1">
-             <StatCard
-              title="Total Orders"
-              value={dashboardData.summary?.totalOrders || 0}
-              icon={<OrdersIcon />}
-              isLoading={isLoading}
-            />
-          </div>
-          <div className="flex-1">
-            <StatCard
-              title="Total Omzet"
-              value={`Rp ${(dashboardData.summary?.totalOmzet || 0).toLocaleString("id-ID")}`}
-              icon={<RevenueIcon />}
-              isLoading={isLoading}
-            />
-          </div>
-          <div className="flex-1">
-            <StatCard
-              title="All Menu Orders"
-              value={dashboardData.summary?.totalItems || 0}
-              icon={<MenuOrdersIcon />}
-              isLoading={isLoading}
-            />
-          </div>
-          <div className="flex-1">
-            <StatCard
-              title="Foods"
-              value={dashboardData.summary?.categoryBreakdown?.foods || 0}
-              icon={<FoodIcon />}
-              clickable
-              onClick={() => handleCategoryClick("Foods", 1)}
-              isLoading={isLoading}
-            />
-          </div>
-          <div className="flex-1">
-            <StatCard
-              title="Beverages"
-              value={dashboardData.summary?.categoryBreakdown?.beverages || 0}
-              icon={<BeverageIcon />}
-              clickable
-              onClick={() => handleCategoryClick("Beverages", 2)}
-              isLoading={isLoading}
-            />
-          </div>
-          <div className="flex-1">
-            <StatCard
-              title="Desserts"
-              value={dashboardData.summary?.categoryBreakdown?.desserts || 0}
-              icon={<DessertIcon />}
-              clickable
-              onClick={() => handleCategoryClick("Desserts", 3)}
-              isLoading={isLoading}
-            />
-          </div>
-        </div>
+      {/* Stats Cards - Responsive Grid */}
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <StatCard
+          title="Total Orders"
+          value={dashboardData.summary?.totalOrders || 0}
+          icon={<OrdersIcon />}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Total Omzet"
+          value={`Rp ${(dashboardData.summary?.totalOmzet || 0).toLocaleString("id-ID")}`}
+          icon={<RevenueIcon />}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="All Items"
+          value={dashboardData.summary?.totalItems || 0}
+          icon={<MenuOrdersIcon />}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Foods"
+          value={dashboardData.summary?.categoryBreakdown?.foods || 0}
+          icon={<FoodIcon />}
+          clickable
+          onClick={() => handleCategoryClick("Foods", 1)}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Beverages"
+          value={dashboardData.summary?.categoryBreakdown?.beverages || 0}
+          icon={<BeverageIcon />}
+          clickable
+          onClick={() => handleCategoryClick("Beverages", 2)}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Desserts"
+          value={dashboardData.summary?.categoryBreakdown?.desserts || 0}
+          icon={<DessertIcon />}
+          clickable
+          onClick={() => handleCategoryClick("Desserts", 3)}
+          isLoading={isLoading}
+        />
       </div>
 
       {/* Revenue Chart Section */}

@@ -34,7 +34,7 @@ export default function CategorySalesModal({ isOpen, onClose, category, data }) 
   }
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 px-4 py-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
       <div className="relative w-full max-w-sm rounded-[16px] bg-white px-5 py-5 shadow-[0_30px_80px_rgba(15,23,42,0.25)]">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">

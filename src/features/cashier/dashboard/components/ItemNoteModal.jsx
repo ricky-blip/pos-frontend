@@ -32,7 +32,7 @@ export default function ItemNoteModal({ isOpen, onClose, onSave, currentItemNote
   }
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 px-4 py-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
       <div className="relative w-full max-w-sm rounded-[22px] bg-white px-6 py-6 shadow-[0_30px_80px_rgba(15,23,42,0.25)]">
         <button
           type="button"

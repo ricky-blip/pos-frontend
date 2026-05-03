@@ -14,7 +14,7 @@ export function useCashierCatalog() {
   const fetchMenus = useCallback(async (categoryId = "all", search = "") => {
     setIsLoading(true);
     try {
-      const mns = await menuService.getAll(categoryId, search);
+      const mns = await menuService.getAll(categoryId, search, true);
       setMenus(mns);
       return mns;
     } catch (err) {

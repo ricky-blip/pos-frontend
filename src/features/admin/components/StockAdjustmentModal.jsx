@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { menuService } from "../../shared/services/menu.service";
 import useToastStore from "../../../stores/useToastStore";
 
@@ -44,8 +45,8 @@ export default function StockAdjustmentModal({ isOpen, onClose, menu, onUpdate }
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-[28px] w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="p-8">
           <div className="flex justify-between items-center mb-6">
@@ -132,6 +133,7 @@ export default function StockAdjustmentModal({ isOpen, onClose, menu, onUpdate }
           </form>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

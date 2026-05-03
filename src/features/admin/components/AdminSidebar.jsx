@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuthStore from "../../../stores/useAuthStore";
+import LogoutConfirmModal from "../../shared/components/LogoutConfirmModal";
 
 function ArrowRightIcon() {
   return (
@@ -144,6 +145,7 @@ export default function AdminSidebar() {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const getActiveItem = () => {
     const path = location.pathname;
@@ -197,10 +199,12 @@ export default function AdminSidebar() {
   ];
 
   const handleLogout = () => {
-    if (window.confirm("Apakah Anda yakin ingin keluar?")) {
-      logout();
-      navigate("/");
-    }
+    setIsLogoutModalOpen(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
+    navigate("/");
   };
 
   const toggleSidebar = () => {
@@ -293,6 +297,11 @@ export default function AdminSidebar() {
           )}
         </button>
       </div>
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onCancel={() => setIsLogoutModalOpen(false)}
+        onConfirm={confirmLogout}
+      />
     </aside>
   );
 }

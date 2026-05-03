@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { createPortal } from "react-dom";
 
 function CloseIcon() {
   return (
@@ -9,22 +9,33 @@ function CloseIcon() {
 }
 
 function formatPrice(value) {
-  return `Rp ${value.toLocaleString("id-ID")}`;
+  return `Rp ${Number(value || 0).toLocaleString("id-ID")}`;
 }
 
-export default function TransactionDetailModal({ isOpen, onClose, order }) {
-  if (!isOpen || !order) {
-    return null;
-  }
+function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  const date = new Date(dateStr);
+  return date.toLocaleString("id-ID", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
-  const subtotal = order.total - 5000;
-  const tax = 5000;
-  const total = order.total;
-  const amountPaid = 50000;
-  const change = amountPaid - total;
+export default function TransactionDetailModal({ isOpen, onClose, transaction }) {
+  if (!isOpen || !transaction) return null;
 
-  return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 px-4 py-8">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-8">
+      {/* Clickable backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
       <div className="relative w-full max-w-md rounded-[22px] bg-white px-7 py-8 shadow-[0_30px_80px_rgba(15,23,42,0.25)]">
         {/* Close Button */}
         <button
@@ -42,63 +53,75 @@ export default function TransactionDetailModal({ isOpen, onClose, order }) {
 
         {/* Order Info */}
         <div className="rounded-xl bg-[#f7f8fb] p-4">
-          <div className="space-y-1 text-xs text-[#7f8797]">
-            <p>
-              <span className="font-medium">No Order:</span> {order.id}
-            </p>
-            <p>
-              <span className="font-medium">Order Date:</span> {order.date}
-            </p>
-            <p>
-              <span className="font-medium">Customer Name:</span> {order.customer}
-            </p>
-            <p>
-              <span className="font-medium">{order.type}:</span>{" "}
-              {order.type === "Dine-in" ? "No. Meja 02" : "Take Away"}
-            </p>
+          <div className="space-y-1.5 text-xs text-[#7f8797] border-b border-dashed border-[#d7deea] pb-3 mb-3">
+            <div className="flex justify-between">
+              <span className="font-medium text-[#111827]">No Invoice:</span>
+              <span className="font-semibold text-blue-600">{transaction.invoiceNumber}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium text-[#111827]">Tanggal:</span>
+              <span>{formatDate(transaction.createdAt)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium text-[#111827]">Customer:</span>
+              <span>{transaction.customerName || "Guest"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium text-[#111827]">Pembayaran:</span>
+              <span className="uppercase font-semibold">{transaction.paymentMethod}</span>
+            </div>
           </div>
 
           {/* Item Details */}
-          <div className="mt-4 border-t border-dashed border-[#d7deea] pt-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-[#2b2f38]">Gado-gado Spesial</p>
-                <p className="text-[11px] text-[#7f8797]">1 x {formatPrice(20000)}</p>
-              </div>
-              <p className="text-xs font-medium text-[#2b2f38]">{formatPrice(20000)}</p>
+          {transaction.items && transaction.items.length > 0 ? (
+            <div className="space-y-2 border-b border-dashed border-[#d7deea] pb-3 mb-3">
+              {transaction.items.map((item, index) => (
+                <div key={index} className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-[#2b2f38]">
+                      {item.menu?.name || "Item"}
+                    </p>
+                    <p className="text-[11px] text-[#7f8797]">
+                      {item.quantity} x {formatPrice(item.priceAtTransaction)}
+                    </p>
+                    {item.note && (
+                      <p className="text-[10px] text-gray-400 italic">{item.note}</p>
+                    )}
+                  </div>
+                  <p className="text-xs font-medium text-[#2b2f38]">
+                    {formatPrice(item.subtotal)}
+                  </p>
+                </div>
+              ))}
             </div>
-          </div>
+          ) : (
+            <p className="text-xs text-gray-400 text-center py-2">Tidak ada item</p>
+          )}
 
           {/* Summary */}
-          <div className="mt-4 space-y-2 border-t border-dashed border-[#d7deea] pt-4">
-            <div className="flex items-center justify-between text-xs text-[#7f8797]">
+          <div className="space-y-2 text-xs text-[#7f8797]">
+            <div className="flex items-center justify-between">
               <span>Sub Total</span>
-              <span>{formatPrice(subtotal)}</span>
+              <span>{formatPrice(transaction.totalOriginal)}</span>
             </div>
-            <div className="flex items-center justify-between text-xs text-[#7f8797]">
-              <span>Tax</span>
-              <span>{formatPrice(tax)}</span>
+            <div className="flex items-center justify-between">
+              <span>PPN (11%)</span>
+              <span>{formatPrice(transaction.totalTax)}</span>
             </div>
-          </div>
-
-          <div className="mt-4 border-t border-dashed border-[#d7deea] pt-4">
-            <div className="flex items-center justify-between text-[#2b2f38]">
+            {Number(transaction.totalDiscount) > 0 && (
+              <div className="flex items-center justify-between text-green-600">
+                <span>Diskon</span>
+                <span>- {formatPrice(transaction.totalDiscount)}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between pt-2 border-t border-dashed border-[#d7deea] text-[#2b2f38]">
               <span className="text-base font-semibold">Total</span>
-              <span className="text-2xl font-bold">{formatPrice(total)}</span>
-            </div>
-            <div className="mt-2 space-y-1 text-xs text-[#7f8797]">
-              <div className="flex items-center justify-between">
-                <span>Diterima</span>
-                <span>{formatPrice(amountPaid)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Kembalian</span>
-                <span>{formatPrice(change)}</span>
-              </div>
+              <span className="text-2xl font-bold text-blue-600">{formatPrice(transaction.totalFinal)}</span>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

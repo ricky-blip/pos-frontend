@@ -109,15 +109,9 @@ function UserFormModal({ isOpen, onClose, onSave, editUser }) {
           )}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Role</label>
-            <select
-              id="um-role"
-              value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none bg-white"
-            >
-              <option value="cashier">💰 Kasir</option>
-              <option value="admin">👨‍💼 Admin</option>
-            </select>
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500">
+              💰 Kasir (Otomatis)
+            </div>
           </div>
 
           <div className="flex gap-3 pt-2">
@@ -193,10 +187,14 @@ function ResetPasswordModal({ isOpen, onClose, onSave, targetUser }) {
   );
 }
 
-// --- Modal: Confirm Delete ---
-function ConfirmDeleteModal({ isOpen, onClose, onConfirm, targetUser }) {
+
+
+// --- Modal: Confirm Status Change ---
+function ConfirmStatusModal({ isOpen, onClose, onConfirm, targetUser }) {
   const [loading, setLoading] = useState(false);
   if (!isOpen) return null;
+
+  const isDeactivating = targetUser?.isActive;
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -205,13 +203,18 @@ function ConfirmDeleteModal({ isOpen, onClose, onConfirm, targetUser }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-        <div className="text-center mb-4">
-          <div className="text-4xl mb-3">🗑️</div>
-          <h2 className="text-lg font-bold text-gray-800">Hapus Staf</h2>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-fade-in">
+        <div className="text-center mb-5">
+          <div className={`text-4xl mb-3 ${isDeactivating ? "text-amber-500" : "text-green-500"}`}>
+            {isDeactivating ? "⚠️" : "✅"}
+          </div>
+          <h2 className="text-lg font-bold text-gray-800">
+            {isDeactivating ? "Nonaktifkan Staf?" : "Aktifkan Staf?"}
+          </h2>
           <p className="text-sm text-gray-500 mt-2">
-            Yakin ingin menghapus akun <span className="font-semibold text-red-600">{targetUser?.username}</span>?
-            Tindakan ini tidak dapat dibatalkan.
+            {isDeactivating 
+              ? `Akun ${targetUser?.username} tidak akan bisa login sampai diaktifkan kembali.` 
+              : `Akun ${targetUser?.username} akan bisa login kembali ke sistem.`}
           </p>
         </div>
         <div className="flex gap-3">
@@ -219,9 +222,9 @@ function ConfirmDeleteModal({ isOpen, onClose, onConfirm, targetUser }) {
             className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">
             Batal
           </button>
-          <button id="um-confirm-delete-btn" onClick={handleConfirm} disabled={loading}
-            className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white rounded-xl text-sm font-bold transition-colors">
-            {loading ? "Menghapus..." : "Ya, Hapus"}
+          <button onClick={handleConfirm} disabled={loading}
+            className={`flex-1 px-4 py-2.5 ${isDeactivating ? "bg-amber-500 hover:bg-amber-600" : "bg-green-600 hover:bg-green-700"} text-white rounded-xl text-sm font-bold transition-colors`}>
+            {loading ? "Memproses..." : "Ya, Lanjutkan"}
           </button>
         </div>
       </div>
@@ -241,7 +244,7 @@ export default function UserManagementPage() {
   const [showForm, setShowForm] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [showReset, setShowReset] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
+  const [showStatusConfirm, setShowStatusConfirm] = useState(false);
   const [targetUser, setTargetUser] = useState(null);
 
   // --- Fetch users ---
@@ -277,10 +280,17 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleToggleStatus = async (user) => {
+  const handleToggleStatusRequest = (user) => {
+    setTargetUser(user);
+    setShowStatusConfirm(true);
+  };
+
+  const handleConfirmToggleStatus = async () => {
     try {
-      await userService.updateUser(user.id, { isActive: !user.isActive });
-      showToast(`Akun ${user.username} ${!user.isActive ? "diaktifkan" : "dinonaktifkan"}`, "success");
+      await userService.updateUser(targetUser.id, { isActive: !targetUser.isActive });
+      showToast(`Akun ${targetUser.username} ${!targetUser.isActive ? "diaktifkan" : "dinonaktifkan"}`, "success");
+      setShowStatusConfirm(false);
+      setTargetUser(null);
       fetchUsers();
     } catch (err) {
       showToast(err.message, "error");
@@ -298,19 +308,9 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleDeleteUser = async () => {
-    try {
-      await userService.deleteUser(targetUser.id);
-      showToast(`Akun ${targetUser.username} berhasil dihapus`, "success");
-      setShowDelete(false);
-      setTargetUser(null);
-      fetchUsers();
-    } catch (err) {
-      showToast(err.message, "error");
-    }
-  };
+  const staffOnly = users.filter((u) => u.role !== "admin");
 
-  const filteredUsers = users.filter((u) =>
+  const filteredUsers = staffOnly.filter((u) =>
     u.username.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase())
   );
@@ -321,7 +321,7 @@ export default function UserManagementPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#111827]">Manajemen Staf</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Kelola akun Admin dan Kasir toko Anda</p>
+          <p className="text-sm text-gray-400 mt-0.5">Kelola akun Kasir toko Anda</p>
         </div>
         <button
           id="um-add-btn"
@@ -346,9 +346,9 @@ export default function UserManagementPage() {
         </div>
         <div className="flex gap-3">
           {[
-            { label: "Total", value: users.length, color: "bg-gray-100 text-gray-700" },
-            { label: "Aktif", value: users.filter((u) => u.isActive).length, color: "bg-green-100 text-green-700" },
-            { label: "Nonaktif", value: users.filter((u) => !u.isActive).length, color: "bg-red-100 text-red-600" },
+            { label: "Total Kasir", value: staffOnly.length, color: "bg-gray-100 text-gray-700" },
+            { label: "Aktif", value: staffOnly.filter((u) => u.isActive).length, color: "bg-green-100 text-green-700" },
+            { label: "Nonaktif", value: staffOnly.filter((u) => !u.isActive).length, color: "bg-red-100 text-red-600" },
           ].map((stat) => (
             <div key={stat.label} className={`px-4 py-2 rounded-xl text-sm font-semibold ${stat.color}`}>
               {stat.value} {stat.label}
@@ -398,7 +398,7 @@ export default function UserManagementPage() {
                   <td className="px-5 py-4">
                     <button
                       id={`um-toggle-status-${user.id}`}
-                      onClick={() => handleToggleStatus(user)}
+                      onClick={() => handleToggleStatusRequest(user)}
                       className="cursor-pointer"
                       title={user.isActive ? "Klik untuk nonaktifkan" : "Klik untuk aktifkan"}
                     >
@@ -420,13 +420,6 @@ export default function UserManagementPage() {
                         className="px-3 py-1.5 text-xs font-semibold text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors"
                       >
                         Reset Pass
-                      </button>
-                      <button
-                        id={`um-delete-${user.id}`}
-                        onClick={() => { setTargetUser(user); setShowDelete(true); }}
-                        className="px-3 py-1.5 text-xs font-semibold text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                      >
-                        Hapus
                       </button>
                     </div>
                   </td>
@@ -450,10 +443,10 @@ export default function UserManagementPage() {
         onSave={handleResetPassword}
         targetUser={targetUser}
       />
-      <ConfirmDeleteModal
-        isOpen={showDelete}
-        onClose={() => { setShowDelete(false); setTargetUser(null); }}
-        onConfirm={handleDeleteUser}
+      <ConfirmStatusModal
+        isOpen={showStatusConfirm}
+        onClose={() => { setShowStatusConfirm(false); setTargetUser(null); }}
+        onConfirm={handleConfirmToggleStatus}
         targetUser={targetUser}
       />
     </div>

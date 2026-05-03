@@ -6,8 +6,22 @@
  * @param {boolean} clickable - Whether the card is clickable
  * @param {function} onClick - Callback when card is clicked
  */
-export default function StatCard({ title, value, icon, clickable = false, onClick }) {
+export default function StatCard({ title, value, icon, clickable = false, onClick, isLoading = false }) {
   const CardWrapper = clickable ? 'button' : 'div';
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 flex-col rounded-lg border border-[#e5e7eb] bg-white px-4 py-4 animate-pulse">
+        <div className="mb-2 h-3 w-16 rounded bg-gray-100"></div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded-full bg-gray-100"></div>
+            <div className="h-5 w-12 rounded bg-gray-100"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <CardWrapper

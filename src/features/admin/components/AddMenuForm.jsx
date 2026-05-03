@@ -120,13 +120,24 @@ export default function AddMenuForm({ menu, onSave, onCancel }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
-      onSave({
-        ...formData,
+      const payload = {
+        name: formData.name,
         categoryId: Number(formData.categoryId),
         price: Number(formData.price),
+        unit: formData.unit,
+        description: formData.description,
         stock: Number(formData.stock),
         is_available: formData.is_available,
-      });
+      };
+
+      // Send the image data (base64 string from preview) if it exists
+      // If formData.image exists, it means a new file was uploaded
+      // If not, we still send imagePreview if it's the existing one
+      if (formData.imagePreview) {
+        payload.image = formData.imagePreview;
+      }
+
+      onSave(payload);
     }
   };
 
