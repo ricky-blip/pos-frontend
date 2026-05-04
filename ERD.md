@@ -4,7 +4,6 @@ Dokumen ini mendefinisikan skema database PadiPos secara mendalam, mencakup tabe
 
 ```mermaid
 erDiagram
-    USERS ||--o{ PASSWORD_RESETS : "requests"
     USERS ||--o{ TRANSACTIONS : "processes"
     CATEGORIES ||--o{ MENUS : "classifies"
     TRANSACTIONS ||--|{ TRANSACTION_ITEMS : "contains"
@@ -69,13 +68,6 @@ erDiagram
         decimal priceAtTransaction "Snapshotted price"
         decimal subtotal "qty * priceAtTransaction"
         string note "Custom order note (e.g., Less sugar)"
-    }
-
-    PASSWORD_RESETS {
-        int id PK
-        int user_id FK
-        string token "Secure hash"
-        datetime expires_at
     }
 
     ACTIVITY_LOGS {
