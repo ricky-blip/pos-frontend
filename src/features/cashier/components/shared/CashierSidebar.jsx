@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuthStore from "../../../../stores/useAuthStore";
-import LogoutConfirmModal from "../../../shared/components/LogoutConfirmModal";
+import LogoutConfirmModal from "../../../../shared/components/LogoutConfirmModal";
 
 function ArrowRightIcon() {
   return (

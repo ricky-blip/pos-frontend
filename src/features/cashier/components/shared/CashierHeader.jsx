@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useAuthStore from "../../../../stores/useAuthStore";
-import LogoutConfirmModal from "../LogoutConfirmModal";
+import LogoutConfirmModal from "../../../../shared/components/LogoutConfirmModal";
 
 function SearchIcon() {
   return (
