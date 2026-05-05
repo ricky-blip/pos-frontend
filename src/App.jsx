@@ -11,7 +11,7 @@ import ToastNotification from "./shared/ToastNotification"
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter> {/*//NOTE - BACKLOG - ini masih pakai React Router (SPA), error di vercel dan di hosting*/}
       <Routes>
         {/* Splash Screen */}
         <Route path="/" element={<SplashScreen />} />
